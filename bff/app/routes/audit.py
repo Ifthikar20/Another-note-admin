@@ -23,6 +23,9 @@ Owner = Annotated[Member, Depends(require("audit.read"))]
 # The actions of 5.6 (view.overview, user.reveal_email, ticket.reply, ...). A pattern rather
 # than a fixed list, so an action the admin API adds can still be filtered on.
 Action = Annotated[Optional[str], Query(max_length=60, pattern=r"^[a-z_]+\.[a-z_]+$")]
+# Actions to leave out, comma separated: the live ticket stream's requests (view.events)
+# are audited like any other, and would otherwise bury the rest.
+Exclude = Annotated[Optional[str], Query(max_length=300, pattern=r"^[a-z_]+\.[a-z_]+(,[a-z_]+\.[a-z_]+)*$")]
 
 EXPORT_PAGE = 100
 EXPORT_MAX_PAGES = 50  # 5,000 rows; narrow the range for more
@@ -35,12 +38,13 @@ async def audit_log(
     member: Owner,
     actor: Email = None,
     action: Action = None,
+    exclude: Exclude = None,
     from_: FromDate = None,
     to: ToDate = None,
     cursor: Cursor = None,
     limit: Limit = 50,
 ):
-    query = {"actor": actor, "action": action, **dates(from_, to), "cursor": cursor, "limit": limit}
+    query = {"actor": actor, "action": action, "exclude": exclude, **dates(from_, to), "cursor": cursor, "limit": limit}
     return await forward(request, "GET", f"{API}/audit", member, query=query, shape=C.AuditList)
 
 
@@ -63,13 +67,21 @@ async def export(
     member: Owner,
     actor: Email = None,
     action: Action = None,
+    exclude: Exclude = None,
     from_: FromDate = None,
     to: ToDate = None,
 ) -> Response:
     rows: list[dict[str, Any]] = []
     cursor: Optional[str] = None
     for _ in range(EXPORT_MAX_PAGES):
-        query = {"actor": actor, "action": action, **dates(from_, to), "cursor": cursor, "limit": EXPORT_PAGE}
+        query = {
+            "actor": actor,
+            "action": action,
+            "exclude": exclude,
+            **dates(from_, to),
+            "cursor": cursor,
+            "limit": EXPORT_PAGE,
+        }
         data = prune(await request.app.state.admin.call("GET", f"{API}/audit", actor=member, query=query), C.AuditList)
         rows.extend(item for item in data.get("items", []) if isinstance(item, dict))
         cursor = data.get("next_cursor")

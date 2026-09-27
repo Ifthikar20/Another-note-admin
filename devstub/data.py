@@ -262,7 +262,7 @@ PRICES: dict[tuple[str, str], dict[str, Optional[float]]] = {
         "per_request": None,
     },
 }
-BUDGET_MONTH_USD = 400.0
+BUDGET_MONTH_USD = 1500.0
 
 TICKETS: list[dict[str, Any]] = [
     {
@@ -1163,13 +1163,16 @@ class Store:
     def _seed_usage(self) -> None:
         rng = self.rng
         rows: dict[tuple[date, int, str, str, str], UsageDay] = {}
-        spikes = {
-            u.id
-            for u in rng.sample(
-                [u for u in self.users.values() if 0.2 < u.engagement < 0.6 and u.status == "active"], 2
-            )
-        }
         yesterday = self.today - timedelta(days=1)
+        # Two people with an ordinary habit have a very unusual day yesterday, so the
+        # "Unusual days" list has something to show. They must have been active that day.
+        active_yesterday = sorted(uid for (uid, day) in self.activity if day == yesterday)
+        candidates = [
+            uid
+            for uid in active_yesterday
+            if 0.2 < self.users[uid].engagement < 0.7 and self.users[uid].status == "active"
+        ]
+        spikes = set(rng.sample(candidates, min(2, len(candidates))))
         for (user_id, day), _seconds in self.activity.items():
             if (self.today - day).days > 60:
                 continue

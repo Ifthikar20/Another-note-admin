@@ -367,3 +367,14 @@ def test_the_request_the_admin_api_sees(harness):
     # Nothing of the browser's own request travels on: no cookies, no Access token.
     assert "cookie" not in request.headers and "cf-access-jwt-assertion" not in request.headers
     assert request.headers["authorization"].startswith("Bearer ")
+
+
+def test_audit_can_leave_background_requests_out(harness):
+    h = harness("owner")
+    for _ in range(3):
+        h.get("/bff/events?after=0")
+    everything = h.get("/bff/audit?limit=100").json()["items"]
+    assert any(r["action"] == "view.events" for r in everything)
+    quiet = h.get("/bff/audit?limit=100&exclude=view.events,audit.view").json()["items"]
+    assert quiet and not any(r["action"] in ("view.events", "audit.view") for r in quiet)
+    assert h.get("/bff/audit?exclude=view.events;DROP").status_code == 400

@@ -1,0 +1,187 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+  AnotherNote Admin. The student app's design tokens (playstudy-card-dash/src/index.css):
+  warm off-white surfaces, near-black ink, hairline borders, compact Inter; dark mode is
+  pure black and white. Two additions:
+
+  --strip     the amber ADMIN bar across the top, so this is never mistaken for the
+              student app;
+  --viz-*     the chart palette: eight categorical slots in a fixed order, validated for
+              colour-blind separation on both surfaces (light #ffffff, dark #000000), the
+              dark column stepped for the dark surface rather than flipped. The accent is
+              the one-series colour; critical is the reserved status colour for errors
+              and failures, always shown with a label.
+*/
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 60 4% 10%;
+    --card: 0 0% 100%;
+    --card-foreground: 60 4% 10%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 60 4% 10%;
+    --primary: 0 0% 12%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 60 8% 95%;
+    --secondary-foreground: 0 0% 12%;
+    --muted: 60 8% 95%;
+    --muted-foreground: 60 2% 41%;
+    --accent: 260 71% 96%;
+    --accent-foreground: 256 64% 34%;
+    --destructive: 5 52% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 60 3% 92%;
+    --input: 60 2% 86%;
+    --ring: 262 74% 54%;
+    --radius: 0.625rem;
+
+    --sidebar-background: 60 11% 96%;
+    --sidebar-foreground: 60 4% 10%;
+    --sidebar-accent: 60 7% 92%;
+    --sidebar-accent-foreground: 60 4% 10%;
+    --sidebar-border: 60 3% 92%;
+
+    --success: 144 39% 40%;
+    --warning: 38 63% 42%;
+    --brand-accent: 262 74% 54%;
+
+    --strip: 38 92% 50%; /* #f59e0b */
+    --strip-foreground: 60 4% 10%;
+
+    --viz-1: #2a78d6;
+    --viz-2: #eb6834;
+    --viz-3: #1baf7a;
+    --viz-4: #eda100;
+    --viz-5: #e87ba4;
+    --viz-6: #008300;
+    --viz-7: #4a3aa7;
+    --viz-8: #e34948;
+    --viz-other: #a5a5a0;
+    --viz-accent: #7232e0;
+    --viz-critical: #d03b3b;
+    --viz-grid: #ecebe8;
+    --viz-axis: #898781;
+    --viz-surface: #ffffff;
+
+    color-scheme: light;
+  }
+
+  .dark {
+    --background: 0 0% 0%;
+    --foreground: 0 0% 100%;
+    --card: 0 0% 0%;
+    --card-foreground: 0 0% 100%;
+    --popover: 0 0% 6%;
+    --popover-foreground: 0 0% 100%;
+    --primary: 0 0% 100%;
+    --primary-foreground: 0 0% 0%;
+    --secondary: 0 0% 10%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 0 0% 8%;
+    --muted-foreground: 0 0% 70%;
+    --accent: 0 0% 12%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 100% 69%;
+    --destructive-foreground: 0 0% 0%;
+    --border: 0 0% 14%;
+    --input: 0 0% 24%;
+    --ring: 0 0% 100%;
+
+    --sidebar-background: 0 0% 7%;
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-accent: 0 0% 15%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 0 0% 18%;
+
+    --success: 142 69% 58%;
+    --warning: 43 96% 56%;
+    --brand-accent: 255 92% 76%;
+
+    --strip: 38 92% 50%;
+    --strip-foreground: 0 0% 0%;
+
+    --viz-1: #3987e5;
+    --viz-2: #d95926;
+    --viz-3: #199e70;
+    --viz-4: #c98500;
+    --viz-5: #d55181;
+    --viz-6: #008300;
+    --viz-7: #9085e9;
+    --viz-8: #e66767;
+    --viz-other: #6b6b66;
+    --viz-accent: #8b5cf6;
+    --viz-critical: #d03b3b;
+    --viz-grid: #1f1f1f;
+    --viz-axis: #898781;
+    --viz-surface: #000000;
+
+    color-scheme: dark;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    font-size: 14px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: "Inter Variable", Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    line-height: 1.5;
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--muted-foreground) / 0.35);
+    border-radius: 9999px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+}
+
+@layer utilities {
+  /* Columns of numbers line up; big standalone figures keep proportional digits. */
+  .num {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+/* Recharts: recessive hairline chrome, text in text tokens. */
+.recharts-cartesian-axis-tick-value {
+  fill: var(--viz-axis);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+.recharts-cartesian-grid line {
+  stroke: var(--viz-grid);
+}
+.recharts-surface:focus {
+  outline: none;
+}
+.recharts-wrapper:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

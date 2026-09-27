@@ -53,6 +53,8 @@ def test_a_member_with_a_good_token_gets_in(harness, jwks, make_token):
     body = r.json()
     assert body["email"] == "jane@anothernote.app" and body["role"] == "support" and body["dev_identity"] is False
     assert "users.reveal_email" in body["capabilities"] and "audit.read" not in body["capabilities"]
+    assert body["sign_out_url"] == "/cdn-cgi/access/logout"
+    assert (body["idle_lock_minutes"], body["idle_sign_out_minutes"]) == (15, 60)
 
 
 def test_a_non_member_gets_403_even_with_a_good_token(harness, jwks, make_token):

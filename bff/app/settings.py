@@ -47,6 +47,10 @@ class Settings:
     # changes. Unset, the Origin header is compared with the Host header instead.
     public_origin: Optional[str] = None
     static_dir: Optional[str] = None
+    # Inactivity: the screen locks (and cached data is dropped) after the first, and the
+    # Cloudflare Access session is signed out after the second.
+    idle_lock_minutes: int = 15
+    idle_sign_out_minutes: int = 60
     version: str = VERSION
 
     @property
@@ -190,6 +194,11 @@ def load_settings(env: Optional[Mapping[str, str]] = None, argv: Optional[Sequen
     if env.get("ADMIN_PUBLIC_ORIGIN", "").strip():
         public_origin = _origin_only(env["ADMIN_PUBLIC_ORIGIN"].strip(), "ADMIN_PUBLIC_ORIGIN")
 
+    idle_lock = _minutes(env, "ADMIN_IDLE_LOCK_MINUTES", 15)
+    idle_sign_out = _minutes(env, "ADMIN_IDLE_SIGNOUT_MINUTES", 60)
+    if idle_sign_out < idle_lock:
+        raise SettingsError("ADMIN_IDLE_SIGNOUT_MINUTES must not be shorter than ADMIN_IDLE_LOCK_MINUTES")
+
     static_dir = env.get("ADMIN_STATIC_DIR") or _default_static_dir()
     return Settings(
         environment=environment,
@@ -201,8 +210,19 @@ def load_settings(env: Optional[Mapping[str, str]] = None, argv: Optional[Sequen
         members=members,
         dev_identity=dev_identity,
         public_origin=public_origin,
+        idle_lock_minutes=idle_lock,
+        idle_sign_out_minutes=idle_sign_out,
         static_dir=static_dir if static_dir and os.path.isdir(static_dir) else None,
     )
+
+
+def _minutes(env: Mapping[str, str], name: str, default: int) -> int:
+    raw = env.get(name, "").strip()
+    if not raw:
+        return default
+    if not raw.isdigit() or not 1 <= int(raw) <= 480:
+        raise SettingsError(f"{name} must be a whole number of minutes from 1 to 480")
+    return int(raw)
 
 
 def _default_static_dir() -> str:

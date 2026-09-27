@@ -187,3 +187,16 @@ def test_public_origin_must_be_an_origin():
     )
     with pytest.raises(SettingsError):
         load_settings(env(ADMIN_PUBLIC_ORIGIN="https://admin.anothernote.app/x"), ["x"])
+
+
+def test_idle_timeouts():
+    s = load_settings(env(ADMIN_IDLE_LOCK_MINUTES="10", ADMIN_IDLE_SIGNOUT_MINUTES="30"), ["x"])
+    assert (s.idle_lock_minutes, s.idle_sign_out_minutes) == (10, 30)
+    assert load_settings(env(), ["x"]).idle_lock_minutes == 15
+    for bad in (
+        {"ADMIN_IDLE_LOCK_MINUTES": "0"},
+        {"ADMIN_IDLE_LOCK_MINUTES": "ten"},
+        {"ADMIN_IDLE_LOCK_MINUTES": "40", "ADMIN_IDLE_SIGNOUT_MINUTES": "30"},
+    ):
+        with pytest.raises(SettingsError):
+            load_settings(env(**bad), ["x"])

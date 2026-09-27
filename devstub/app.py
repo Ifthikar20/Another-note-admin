@@ -1780,18 +1780,21 @@ def create_stub(
         request: Request,
         actor: Optional[str] = None,
         action: Optional[str] = None,
+        exclude: Optional[str] = None,
         to: Optional[date] = None,
         cursor: Optional[str] = None,
         limit: int = 50,
     ) -> Any:
         need(request, OWNER)
         f, t = day_range(s, _from(request), to, default_days=365)
+        left_out = set((exclude or "").split(",")) - {""}
         found = [
             a
             for a in s.audit
             if in_range(a.at, f, t)
             and (not actor or a.actor_email == actor.lower())
             and (not action or a.action == action)
+            and a.action not in left_out
         ]
         found.sort(key=lambda a: a.id, reverse=True)
         page, next_cursor = paginate(found, cursor, limit)

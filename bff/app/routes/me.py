@@ -27,6 +27,11 @@ async def me(request: Request, member: Annotated[Member, Depends(current_member)
             "environment": settings.environment,
             "dev_identity": settings.dev_identity is not None and member == settings.dev_identity,
             "version": settings.version,
+            # Cloudflare Access ends the session at this path of the application's own
+            # hostname; without Access (development) there is nothing to sign out of.
+            "sign_out_url": "/cdn-cgi/access/logout" if settings.access_enabled else None,
+            "idle_lock_minutes": settings.idle_lock_minutes,
+            "idle_sign_out_minutes": settings.idle_sign_out_minutes,
         }
     )
 
