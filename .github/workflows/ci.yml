@@ -113,7 +113,7 @@ jobs:
           npm run build
           npx playwright test
       - if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: playwright-report
           path: |
@@ -140,7 +140,7 @@ jobs:
           docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v trivy-cache:/root/.cache/trivy
           -v "$PWD:/out" "$TRIVY_IMAGE" image --quiet --format spdx-json --output /out/sbom.spdx.json
           anothernote-admin:ci
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: sbom-${{ github.sha }}
           path: sbom.spdx.json
