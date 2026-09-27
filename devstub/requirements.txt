@@ -1,0 +1,2 @@
+# The stand-in admin API needs nothing beyond the BFF's own runtime set.
+-r ../bff/requirements.txt

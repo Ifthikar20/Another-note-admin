@@ -1,0 +1,24 @@
+# Settings for the Python tools. The BFF itself is not a package; it runs from bff/.
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+extend-exclude = ["web"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "S"]
+ignore = [
+    "E501",   # the formatter decides line length; long literals stay whole
+    "B008",   # FastAPI's Depends() in defaults
+    "S101",   # assert is how tests say things
+    "S311",   # the stand-in's random numbers seed made-up data, not secrets
+    "UP007",  # Optional[...] reads better in the contract than X | None
+    "UP045",
+]
+
+[tool.ruff.lint.per-file-ignores]
+"bff/tests/*" = ["S104", "S105", "S106", "S108", "S301"]
+"devstub/tests/*" = ["S105", "S106", "S301"]
+"devstub/*" = ["S104"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["bff", "devstub"]
