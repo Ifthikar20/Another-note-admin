@@ -244,7 +244,10 @@ is not in `ADMIN_MEMBERS`: the two lists must agree, and both change together
 
 ### 8. GitHub
 
-In the repository settings, a branch protection rule (or ruleset) for `main`:
+`main` is the branch releases come from: CI releases only pushes to it, `deploy-aws.sh`
+deploys only commits on it, and Dependabot proposes updates to it. Make it the default
+branch (Settings > General > Default branch). Then, a branch protection rule (or ruleset)
+for `main`:
 
 - require a pull request with one approval, from a code owner, and dismiss approvals
   when new commits arrive;

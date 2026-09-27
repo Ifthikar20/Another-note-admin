@@ -276,12 +276,12 @@ def fake(handler) -> httpx.MockTransport:
     ],
 )
 def test_admin_api_errors_are_mapped(status, payload, expected_status, expected, harness):
-    transport = fake(
-        lambda request: httpx.Response(status, json=payload)
-        if payload is not None
-        else httpx.Response(status, text="<html>oops</html>")
-    )
-    h = harness("owner", transport=transport)
+    def answer(request):
+        if payload is None:
+            return httpx.Response(status, text="<html>oops</html>")
+        return httpx.Response(status, json=payload)
+
+    h = harness("owner", transport=fake(answer))
     r = h.get("/bff/users/5")
     assert r.status_code == expected_status
     assert (r.json()["error"]["code"], r.json()["error"]["message"]) == expected

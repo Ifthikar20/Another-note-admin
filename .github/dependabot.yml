@@ -1,33 +1,50 @@
 # Proposed updates arrive as pull requests, so each one passes CI and a review like any
 # other change (docs/SOC2.md, vulnerability management). Security updates for known
 # vulnerabilities also need "Dependabot security updates" on in the repository settings.
+#
+# Every update targets main, the branch releases come from (docs/DEPLOY.md, step 8); until
+# main exists, Dependabot waits.
+#
+# Packages that only work at matching versions are grouped, so they arrive in one pull
+# request: bumped alone, pydantic-core cannot install beside the pydantic that pins it, and
+# @eslint/js 10 needs eslint 10.
 version: 2
 updates:
   - package-ecosystem: pip
-    directory: /bff # what the image runs
+    # requirements-dev.txt includes bff/requirements.txt (what the image runs), so this one
+    # entry covers both files.
+    directory: /
     schedule: { interval: weekly }
+    target-branch: main
     labels: [dependencies]
-  - package-ecosystem: pip
-    directory: / # test and lint tools
-    schedule: { interval: weekly }
-    labels: [dependencies]
+    groups:
+      tools:
+        patterns: ["pytest*", "ruff", "pip-audit"]
+      runtime:
+        patterns: ["*"]
   - package-ecosystem: npm
     directory: /web
     schedule: { interval: weekly }
+    target-branch: main
     labels: [dependencies]
     groups:
+      lint:
+        patterns: ["eslint", "eslint-*", "@eslint/*", "typescript-eslint", "globals"]
       development:
         dependency-type: development
         update-types: [minor, patch]
   - package-ecosystem: docker # the Dockerfile's base images, pinned by digest
     directory: /
     schedule: { interval: weekly }
+    target-branch: main
     labels: [dependencies]
   - package-ecosystem: docker-compose # cloudflared in deploy/docker-compose.yml
     directory: /deploy
     schedule: { interval: weekly }
+    target-branch: main
     labels: [dependencies]
   - package-ecosystem: github-actions
     directory: /
     schedule: { interval: weekly }
+    target-branch: main
     labels: [dependencies]

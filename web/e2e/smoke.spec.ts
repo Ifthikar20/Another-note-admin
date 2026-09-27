@@ -102,7 +102,11 @@ test("the screen locks when idle, and drops what it showed", async ({ page }) =>
   await page.clock.install();
   await page.goto("/users/5");
   await settled(page);
+  // Away for 16 minutes (as a laptop that slept), then back while the app's 15-second check
+  // runs: the jump alone fires each timer at most once, racing the clock's own real-time
+  // loop, so let the check run on the far side of it too.
   await page.clock.fastForward(16 * 60_000);
+  await page.clock.runFor(30_000);
   await expect(page.getByText("Locked while you were away")).toBeVisible();
   await expect(page.getByTestId("email")).toHaveCount(0);
   await page.getByRole("button", { name: "Continue" }).click();

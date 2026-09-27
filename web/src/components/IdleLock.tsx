@@ -3,21 +3,25 @@
  * and every cached admin answer is dropped from memory; after `signOutMinutes` the
  * Cloudflare Access session is ended, so coming back needs single sign-on and MFA again.
  * Time is measured with the wall clock, so a laptop that slept is judged on waking.
+ *
+ * The time of the last activity belongs to the page, not to a component: remounting the
+ * app (or this hook) never restarts the count.
  */
 import { useQueryClient } from "@tanstack/react-query";
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 
 import { session } from "@/lib/session";
 
 const EVENTS = ["pointerdown", "keydown", "wheel", "touchstart", "mousemove"] as const;
 
+let lastActivity = Date.now();
+
 export function useIdleLock({ lockMinutes, signOutMinutes, signOutUrl }: { lockMinutes: number; signOutMinutes: number; signOutUrl: string | null }) {
   const queryClient = useQueryClient();
-  const last = useRef(Date.now());
 
   useEffect(() => {
     const touch = () => {
-      if (session.get() === "active") last.current = Date.now();
+      if (session.get() === "active") lastActivity = Date.now();
     };
     let lastMove = 0;
     const onMove = () => {
@@ -30,7 +34,7 @@ export function useIdleLock({ lockMinutes, signOutMinutes, signOutUrl }: { lockM
     for (const e of EVENTS) window.addEventListener(e, e === "mousemove" ? onMove : touch, { passive: true });
 
     const check = () => {
-      const idle = Date.now() - last.current;
+      const idle = Date.now() - lastActivity;
       if (signOutUrl && idle >= signOutMinutes * 60_000) {
         queryClient.clear();
         window.location.assign(signOutUrl);
@@ -56,7 +60,7 @@ export function useIdleLock({ lockMinutes, signOutMinutes, signOutUrl }: { lockM
 
   return {
     unlock: () => {
-      last.current = Date.now();
+      lastActivity = Date.now();
       session.unlock();
     },
   };
