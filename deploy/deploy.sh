@@ -9,9 +9,10 @@
 #
 # Steps: settings from SSM -> pull admin-web and cloudflared -> rebuild the admin API from
 # the backend's tree -> start what changed and wait for it to be healthy -> check that no
-# container publishes a port -> one line in deploys.log: when, who, which version and
-# image digest, and whether it worked (the change record for this service). The settings
-# become .env only when all of that worked, so .env always describes what runs.
+# container publishes a port -> one line in deploys.log, and the same in CloudWatch: when,
+# who, which version and image digest, and whether it worked (the change record for this
+# service). The settings become .env only when all of that worked, so .env always
+# describes what runs.
 set -euo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")"
 PROJECT=anothernote-admin
@@ -41,8 +42,21 @@ VERSION="$1"
 PREVIOUS="$(last_good)"
 DIGEST=-
 DONE=0
+REGION=
+GROUP=
 record() {
-  printf '%s\t%s\t%s\t%s\t%s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "${SUDO_USER:-root}" "$VERSION" "$DIGEST" "$1" >> "$LOG"
+  local at by line
+  at="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+  by="${SUDO_USER:-root}"
+  printf '%s\t%s\t%s\t%s\t%s\n' "$at" "$by" "$VERSION" "$DIGEST" "$1" >> "$LOG"
+  # The same record off the box, in the service's log group (stream "deploys"), once the
+  # settings say where that is. None of these values can hold a quote.
+  [ -n "$REGION" ] || return 0
+  line="{\"event\":\"deploy\",\"result\":\"$1\",\"version\":\"$VERSION\",\"image\":\"$DIGEST\",\"by\":\"$by\",\"at\":\"$at\"}"
+  aws logs create-log-stream --region "$REGION" --log-group-name "$GROUP" --log-stream-name deploys > /dev/null 2>&1 || true
+  aws logs put-log-events --region "$REGION" --log-group-name "$GROUP" --log-stream-name deploys \
+    --log-events "[{\"timestamp\":$(date +%s)000,\"message\":\"${line//\"/\\\"}\"}]" > /dev/null 2>&1 ||
+    echo "warning: this deploy's record is only in $LOG: it could not be written to CloudWatch ($GROUP)" >&2
 }
 compose() { docker compose --env-file "$NEXT" -p "$PROJECT" "$@"; }
 finish() {
@@ -58,6 +72,8 @@ echo "==> settings from SSM"
 ADMIN_WEB_VERSION="$VERSION" ENV_FILE="$NEXT" ./render-env.sh
 IMAGE="$(setting ADMIN_WEB_IMAGE)"
 REGION="$(setting AWS_REGION)"
+GROUP="$(setting ADMIN_LOG_GROUP)"
+GROUP="${GROUP:-/anothernote/admin}"
 BACKEND_DIR="$(setting BACKEND_DIR)"
 BACKEND_DIR="${BACKEND_DIR:-/opt/playstudy/backend}"
 [ -f "$BACKEND_DIR/app/admin_main.py" ] ||

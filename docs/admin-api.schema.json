@@ -1,0 +1,4060 @@
+{
+  "$defs": {
+    "Accounts": {
+      "additionalProperties": false,
+      "properties": {
+        "adults": {
+          "title": "Adults",
+          "type": "integer"
+        },
+        "children": {
+          "title": "Children",
+          "type": "integer"
+        },
+        "deactivated": {
+          "title": "Deactivated",
+          "type": "integer"
+        },
+        "guardians": {
+          "title": "Guardians",
+          "type": "integer"
+        },
+        "teachers": {
+          "title": "Teachers",
+          "type": "integer"
+        },
+        "total": {
+          "title": "Total",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "total",
+        "adults",
+        "children",
+        "teachers",
+        "guardians",
+        "deactivated"
+      ],
+      "title": "Accounts",
+      "type": "object"
+    },
+    "ActiveDay": {
+      "additionalProperties": false,
+      "properties": {
+        "active_seconds": {
+          "title": "Active Seconds",
+          "type": "integer"
+        },
+        "day": {
+          "format": "date",
+          "title": "Day",
+          "type": "string"
+        }
+      },
+      "required": [
+        "day",
+        "active_seconds"
+      ],
+      "title": "ActiveDay",
+      "type": "object"
+    },
+    "ActiveResult": {
+      "additionalProperties": false,
+      "properties": {
+        "is_active": {
+          "title": "Is Active",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "is_active"
+      ],
+      "title": "ActiveResult",
+      "type": "object"
+    },
+    "ActiveUsers": {
+      "additionalProperties": false,
+      "properties": {
+        "as_of": {
+          "format": "date",
+          "title": "As Of",
+          "type": "string"
+        },
+        "granularity": {
+          "const": "day",
+          "title": "Granularity",
+          "type": "string"
+        },
+        "mau": {
+          "title": "Mau",
+          "type": "integer"
+        },
+        "range": {
+          "$ref": "#/$defs/Range"
+        },
+        "series": {
+          "items": {
+            "$ref": "#/$defs/DauPoint"
+          },
+          "title": "Series",
+          "type": "array"
+        },
+        "wau": {
+          "title": "Wau",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "range",
+        "granularity",
+        "series",
+        "wau",
+        "mau",
+        "as_of"
+      ],
+      "title": "ActiveUsers",
+      "type": "object"
+    },
+    "Activity": {
+      "additionalProperties": false,
+      "properties": {
+        "active_30d": {
+          "title": "Active 30D",
+          "type": "integer"
+        },
+        "active_7d": {
+          "title": "Active 7D",
+          "type": "integer"
+        },
+        "active_today": {
+          "title": "Active Today",
+          "type": "integer"
+        },
+        "online_now": {
+          "title": "Online Now",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "online_now",
+        "active_today",
+        "active_7d",
+        "active_30d"
+      ],
+      "title": "Activity",
+      "type": "object"
+    },
+    "AnalyticsDay": {
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "title": "Action",
+          "type": "integer"
+        },
+        "day": {
+          "format": "date",
+          "title": "Day",
+          "type": "string"
+        },
+        "error": {
+          "title": "Error",
+          "type": "integer"
+        },
+        "view": {
+          "title": "View",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "day",
+        "view",
+        "action",
+        "error"
+      ],
+      "title": "AnalyticsDay",
+      "type": "object"
+    },
+    "AnalyticsEvent": {
+      "additionalProperties": false,
+      "properties": {
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        },
+        "id": {
+          "title": "Id",
+          "type": "integer"
+        },
+        "kind": {
+          "enum": [
+            "view",
+            "action",
+            "error"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "path": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Path"
+        },
+        "user_id": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "User Id"
+        },
+        "utm_campaign": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Utm Campaign"
+        },
+        "utm_medium": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Utm Medium"
+        },
+        "utm_source": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Utm Source"
+        }
+      },
+      "required": [
+        "id",
+        "created_at",
+        "user_id",
+        "kind",
+        "name",
+        "path",
+        "utm_source",
+        "utm_medium",
+        "utm_campaign"
+      ],
+      "title": "AnalyticsEvent",
+      "type": "object"
+    },
+    "AnalyticsEventList": {
+      "additionalProperties": false,
+      "properties": {
+        "items": {
+          "items": {
+            "$ref": "#/$defs/AnalyticsEvent"
+          },
+          "title": "Items",
+          "type": "array"
+        },
+        "next_cursor": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Next Cursor"
+        }
+      },
+      "required": [
+        "items"
+      ],
+      "title": "AnalyticsEventList",
+      "type": "object"
+    },
+    "AnalyticsSummary": {
+      "additionalProperties": false,
+      "properties": {
+        "by_day": {
+          "items": {
+            "$ref": "#/$defs/AnalyticsDay"
+          },
+          "title": "By Day",
+          "type": "array"
+        },
+        "campaigns": {
+          "items": {
+            "$ref": "#/$defs/Campaign"
+          },
+          "title": "Campaigns",
+          "type": "array"
+        },
+        "range": {
+          "$ref": "#/$defs/Range"
+        },
+        "top_actions": {
+          "items": {
+            "$ref": "#/$defs/NameCount"
+          },
+          "title": "Top Actions",
+          "type": "array"
+        },
+        "top_pages": {
+          "items": {
+            "$ref": "#/$defs/NameCount"
+          },
+          "title": "Top Pages",
+          "type": "array"
+        },
+        "totals": {
+          "$ref": "#/$defs/AnalyticsTotals"
+        }
+      },
+      "required": [
+        "range",
+        "totals",
+        "by_day",
+        "top_pages",
+        "top_actions",
+        "campaigns"
+      ],
+      "title": "AnalyticsSummary",
+      "type": "object"
+    },
+    "AnalyticsTotals": {
+      "additionalProperties": false,
+      "properties": {
+        "actions": {
+          "title": "Actions",
+          "type": "integer"
+        },
+        "errors": {
+          "title": "Errors",
+          "type": "integer"
+        },
+        "users": {
+          "title": "Users",
+          "type": "integer"
+        },
+        "views": {
+          "title": "Views",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "views",
+        "actions",
+        "errors",
+        "users"
+      ],
+      "title": "AnalyticsTotals",
+      "type": "object"
+    },
+    "Anomalies": {
+      "additionalProperties": false,
+      "properties": {
+        "date": {
+          "format": "date",
+          "title": "Date",
+          "type": "string"
+        },
+        "items": {
+          "items": {
+            "$ref": "#/$defs/Anomaly"
+          },
+          "title": "Items",
+          "type": "array"
+        }
+      },
+      "required": [
+        "date",
+        "items"
+      ],
+      "title": "Anomalies",
+      "type": "object"
+    },
+    "Anomaly": {
+      "additionalProperties": false,
+      "properties": {
+        "median_30d": {
+          "title": "Median 30D",
+          "type": "number"
+        },
+        "metric": {
+          "enum": [
+            "tokens",
+            "cost"
+          ],
+          "title": "Metric",
+          "type": "string"
+        },
+        "plan_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Plan Id"
+        },
+        "ratio": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Ratio"
+        },
+        "reason": {
+          "enum": [
+            "spike",
+            "over_plan_share"
+          ],
+          "title": "Reason",
+          "type": "string"
+        },
+        "user": {
+          "$ref": "#/$defs/UserRef"
+        },
+        "value": {
+          "title": "Value",
+          "type": "number"
+        }
+      },
+      "required": [
+        "user",
+        "metric",
+        "value",
+        "median_30d",
+        "ratio",
+        "reason",
+        "plan_id"
+      ],
+      "title": "Anomaly",
+      "type": "object"
+    },
+    "Assignment": {
+      "additionalProperties": false,
+      "properties": {
+        "assigned_by": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Assigned By"
+        },
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        },
+        "ends_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Ends At"
+        },
+        "id": {
+          "title": "Id",
+          "type": "integer"
+        },
+        "note": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Note"
+        },
+        "plan_id": {
+          "title": "Plan Id",
+          "type": "string"
+        },
+        "source": {
+          "enum": [
+            "manual",
+            "promo",
+            "organization",
+            "stripe"
+          ],
+          "title": "Source",
+          "type": "string"
+        },
+        "starts_at": {
+          "format": "date-time",
+          "title": "Starts At",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "active",
+            "trial",
+            "past_due",
+            "canceled",
+            "expired"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "subject_id": {
+          "title": "Subject Id",
+          "type": "integer"
+        },
+        "subject_type": {
+          "enum": [
+            "user",
+            "organization"
+          ],
+          "title": "Subject Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "subject_type",
+        "subject_id",
+        "plan_id",
+        "status",
+        "source",
+        "starts_at",
+        "ends_at",
+        "note",
+        "assigned_by",
+        "created_at"
+      ],
+      "title": "Assignment",
+      "type": "object"
+    },
+    "AssignmentCounts": {
+      "additionalProperties": false,
+      "properties": {
+        "active": {
+          "title": "Active",
+          "type": "integer"
+        },
+        "trial": {
+          "title": "Trial",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "active",
+        "trial"
+      ],
+      "title": "AssignmentCounts",
+      "type": "object"
+    },
+    "AuditList": {
+      "additionalProperties": false,
+      "properties": {
+        "items": {
+          "items": {
+            "$ref": "#/$defs/AuditRow"
+          },
+          "title": "Items",
+          "type": "array"
+        },
+        "next_cursor": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Next Cursor"
+        }
+      },
+      "required": [
+        "items"
+      ],
+      "title": "AuditList",
+      "type": "object"
+    },
+    "AuditRow": {
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "title": "Action",
+          "type": "string"
+        },
+        "actor_email": {
+          "title": "Actor Email",
+          "type": "string"
+        },
+        "actor_role": {
+          "title": "Actor Role",
+          "type": "string"
+        },
+        "at": {
+          "format": "date-time",
+          "title": "At",
+          "type": "string"
+        },
+        "details": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "items": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "integer"
+                        }
+                      ]
+                    },
+                    "type": "array"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Details"
+        },
+        "id": {
+          "title": "Id",
+          "type": "integer"
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Reason"
+        },
+        "request_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Request Id"
+        },
+        "target_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Target Id"
+        },
+        "target_type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Target Type"
+        }
+      },
+      "required": [
+        "id",
+        "at",
+        "actor_email",
+        "actor_role",
+        "action",
+        "target_type",
+        "target_id",
+        "reason",
+        "request_id",
+        "details"
+      ],
+      "title": "AuditRow",
+      "type": "object"
+    },
+    "AuthEvent": {
+      "additionalProperties": false,
+      "properties": {
+        "country": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Country"
+        },
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        },
+        "id": {
+          "title": "Id",
+          "type": "integer"
+        },
+        "identifier_hash": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Identifier Hash"
+        },
+        "ip_prefix_hash": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Ip Prefix Hash"
+        },
+        "kind": {
+          "enum": [
+            "sign_in",
+            "sign_in_failed",
+            "pin_locked",
+            "pin_reset",
+            "sign_out",
+            "sign_out_everywhere",
+            "password_changed",
+            "refresh_replay",
+            "admin_action"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "method": {
+          "anyOf": [
+            {
+              "enum": [
+                "password",
+                "google",
+                "microsoft",
+                "pin",
+                "desktop"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Method"
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Reason"
+        },
+        "ua_family": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Ua Family"
+        },
+        "user_id": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "User Id"
+        }
+      },
+      "required": [
+        "id",
+        "created_at",
+        "user_id",
+        "kind",
+        "method",
+        "reason",
+        "country",
+        "ua_family",
+        "ip_prefix_hash",
+        "identifier_hash"
+      ],
+      "title": "AuthEvent",
+      "type": "object"
+    },
+    "AuthEventList": {
+      "additionalProperties": false,
+      "properties": {
+        "items": {
+          "items": {
+            "$ref": "#/$defs/AuthEvent"
+          },
+          "title": "Items",
+          "type": "array"
+        },
+        "next_cursor": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Next Cursor"
+        }
+      },
+      "required": [
+        "items"
+      ],
+      "title": "AuthEventList",
+      "type": "object"
+    },
+    "Campaign": {
+      "additionalProperties": false,
+      "properties": {
+        "events": {
+          "title": "Events",
+          "type": "integer"
+        },
+        "users": {
+          "title": "Users",
+          "type": "integer"
+        },
+        "utm_campaign": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Utm Campaign"
+        },
+        "utm_medium": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Utm Medium"
+        },
+        "utm_source": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Utm Source"
+        }
+      },
+      "required": [
+        "utm_source",
+        "utm_medium",
+        "utm_campaign",
+        "events",
+        "users"
+      ],
+      "title": "Campaign",
+      "type": "object"
+    },
+    "DauPoint": {
+      "additionalProperties": false,
+      "properties": {
+        "dau": {
+          "title": "Dau",
+          "type": "integer"
+        },
+        "day": {
+          "format": "date",
+          "title": "Day",
+          "type": "string"
+        }
+      },
+      "required": [
+        "day",
+        "dau"
+      ],
+      "title": "DauPoint",
+      "type": "object"
+    },
+    "DayCount": {
+      "additionalProperties": false,
+      "properties": {
+        "count": {
+          "title": "Count",
+          "type": "integer"
+        },
+        "day": {
+          "format": "date",
+          "title": "Day",
+          "type": "string"
+        }
+      },
+      "required": [
+        "day",
+        "count"
+      ],
+      "title": "DayCount",
+      "type": "object"
+    },
+    "EffectivePlan": {
+      "additionalProperties": false,
+      "properties": {
+        "assignment_id": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Assignment Id"
+        },
+        "ends_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Ends At"
+        },
+        "plan": {
+          "$ref": "#/$defs/PlanName"
+        },
+        "source": {
+          "enum": [
+            "user",
+            "organization",
+            "default"
+          ],
+          "title": "Source",
+          "type": "string"
+        },
+        "starts_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Starts At"
+        },
+        "status": {
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "plan",
+        "source",
+        "status",
+        "assignment_id",
+        "starts_at",
+        "ends_at"
+      ],
+      "title": "EffectivePlan",
+      "type": "object"
+    },
+    "ErrorGroup": {
+      "additionalProperties": false,
+      "description": "One thing that went wrong, grouped by its message.",
+      "properties": {
+        "by_day": {
+          "items": {
+            "$ref": "#/$defs/DayCount"
+          },
+          "title": "By Day",
+          "type": "array"
+        },
+        "count": {
+          "title": "Count",
+          "type": "integer"
+        },
+        "first_at": {
+          "format": "date-time",
+          "title": "First At",
+          "type": "string"
+        },
+        "last_at": {
+          "format": "date-time",
+          "title": "Last At",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "paths": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Paths",
+          "type": "array"
+        },
+        "users": {
+          "title": "Users",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "name",
+        "count",
+        "users",
+        "first_at",
+        "last_at",
+        "paths",
+        "by_day"
+      ],
+      "title": "ErrorGroup",
+      "type": "object"
+    },
+    "ErrorGroups": {
+      "additionalProperties": false,
+      "properties": {
+        "items": {
+          "items": {
+            "$ref": "#/$defs/ErrorGroup"
+          },
+          "title": "Items",
+          "type": "array"
+        },
+        "next_cursor": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Next Cursor"
+        },
+        "range": {
+          "$ref": "#/$defs/Range"
+        }
+      },
+      "required": [
+        "range",
+        "items"
+      ],
+      "title": "ErrorGroups",
+      "type": "object"
+    },
+    "EventList": {
+      "additionalProperties": false,
+      "properties": {
+        "items": {
+          "items": {
+            "$ref": "#/$defs/OutboxEvent"
+          },
+          "title": "Items",
+          "type": "array"
+        },
+        "next_cursor": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Next Cursor"
+        }
+      },
+      "required": [
+        "items"
+      ],
+      "title": "EventList",
+      "type": "object"
+    },
+    "Family": {
+      "additionalProperties": false,
+      "properties": {
+        "children_active": {
+          "title": "Children Active",
+          "type": "integer"
+        },
+        "children_revoked": {
+          "title": "Children Revoked",
+          "type": "integer"
+        },
+        "guardians_active": {
+          "title": "Guardians Active",
+          "type": "integer"
+        },
+        "guardians_revoked": {
+          "title": "Guardians Revoked",
+          "type": "integer"
+        },
+        "links": {
+          "items": {
+            "$ref": "#/$defs/FamilyLink"
+          },
+          "title": "Links",
+          "type": "array"
+        }
+      },
+      "required": [
+        "guardians_active",
+        "guardians_revoked",
+        "children_active",
+        "children_revoked",
+        "links"
+      ],
+      "title": "Family",
+      "type": "object"
+    },
+    "FamilyLink": {
+      "additionalProperties": false,
+      "properties": {
+        "activated_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Activated At"
+        },
+        "id": {
+          "title": "Id",
+          "type": "integer"
+        },
+        "origin": {
+          "enum": [
+            "created",
+            "claimed"
+          ],
+          "title": "Origin",
+          "type": "string"
+        },
+        "other_user_id": {
+          "title": "Other User Id",
+          "type": "integer"
+        },
+        "relation": {
+          "enum": [
+            "guardian",
+            "child"
+          ],
+          "title": "Relation",
+          "type": "string"
+        },
+        "revoked_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Revoked At"
+        },
+        "status": {
+          "enum": [
+            "pending",
+            "active",
+            "revoked",
+            "aged_out"
+          ],
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "relation",
+        "other_user_id",
+        "origin",
+        "status",
+        "activated_at",
+        "revoked_at"
+      ],
+      "title": "FamilyLink",
+      "type": "object"
+    },
+    "FeatureCost": {
+      "additionalProperties": false,
+      "properties": {
+        "cost_usd": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Cost Usd"
+        },
+        "feature": {
+          "title": "Feature",
+          "type": "string"
+        },
+        "tokens": {
+          "title": "Tokens",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "feature",
+        "cost_usd",
+        "tokens"
+      ],
+      "title": "FeatureCost",
+      "type": "object"
+    },
+    "FeatureUsage": {
+      "additionalProperties": false,
+      "properties": {
+        "cost_usd": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Cost Usd"
+        },
+        "feature": {
+          "title": "Feature",
+          "type": "string"
+        },
+        "tokens": {
+          "title": "Tokens",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "feature",
+        "tokens",
+        "cost_usd"
+      ],
+      "title": "FeatureUsage",
+      "type": "object"
+    },
+    "Footprint": {
+      "additionalProperties": false,
+      "description": "Counts and sizes only: never a title, never a word of what was written.",
+      "properties": {
+        "answers": {
+          "title": "Answers",
+          "type": "integer"
+        },
+        "highlights": {
+          "title": "Highlights",
+          "type": "integer"
+        },
+        "last_session_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Last Session At"
+        },
+        "notes": {
+          "title": "Notes",
+          "type": "integer"
+        },
+        "office_files": {
+          "title": "Office Files",
+          "type": "integer"
+        },
+        "pdf_bytes": {
+          "title": "Pdf Bytes",
+          "type": "integer"
+        },
+        "pdfs": {
+          "title": "Pdfs",
+          "type": "integer"
+        },
+        "sticky_notes": {
+          "title": "Sticky Notes",
+          "type": "integer"
+        },
+        "study_sessions": {
+          "title": "Study Sessions",
+          "type": "integer"
+        },
+        "youtube_sessions": {
+          "title": "Youtube Sessions",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "study_sessions",
+        "notes",
+        "youtube_sessions",
+        "pdfs",
+        "office_files",
+        "pdf_bytes",
+        "highlights",
+        "sticky_notes",
+        "answers",
+        "last_session_at"
+      ],
+      "title": "Footprint",
+      "type": "object"
+    },
+    "Health": {
+      "additionalProperties": false,
+      "properties": {
+        "db": {
+          "title": "Db",
+          "type": "boolean"
+        },
+        "ok": {
+          "title": "Ok",
+          "type": "boolean"
+        },
+        "redis": {
+          "title": "Redis",
+          "type": "boolean"
+        },
+        "version": {
+          "title": "Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "ok",
+        "db",
+        "redis",
+        "version"
+      ],
+      "title": "Health",
+      "type": "object"
+    },
+    "HourCount": {
+      "additionalProperties": false,
+      "properties": {
+        "count": {
+          "title": "Count",
+          "type": "integer"
+        },
+        "hour": {
+          "format": "date-time",
+          "title": "Hour",
+          "type": "string"
+        }
+      },
+      "required": [
+        "hour",
+        "count"
+      ],
+      "title": "HourCount",
+      "type": "object"
+    },
+    "Identity": {
+      "additionalProperties": false,
+      "properties": {
+        "email_masked": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Email Masked"
+        },
+        "first_name": {
+          "title": "First Name",
+          "type": "string"
+        },
+        "username_masked": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Username Masked"
+        }
+      },
+      "required": [
+        "email_masked",
+        "username_masked",
+        "first_name"
+      ],
+      "title": "Identity",
+      "type": "object"
+    },
+    "LiveSession": {
+      "additionalProperties": false,
+      "properties": {
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        },
+        "device": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SessionDevice"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "expires_at": {
+          "format": "date-time",
+          "title": "Expires At",
+          "type": "string"
+        },
+        "session_id": {
+          "title": "Session Id",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "session_id",
+        "created_at",
+        "expires_at",
+        "device"
+      ],
+      "title": "LiveSession",
+      "type": "object"
+    },
+    "MonthToDate": {
+      "additionalProperties": false,
+      "properties": {
+        "budget_usd": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Budget Usd"
+        },
+        "cost_usd": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Cost Usd"
+        },
+        "month": {
+          "title": "Month",
+          "type": "string"
+        }
+      },
+      "required": [
+        "month",
+        "cost_usd",
+        "budget_usd"
+      ],
+      "title": "MonthToDate",
+      "type": "object"
+    },
+    "NameCount": {
+      "additionalProperties": false,
+      "properties": {
+        "count": {
+          "title": "Count",
+          "type": "integer"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "users": {
+          "title": "Users",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "name",
+        "count",
+        "users"
+      ],
+      "title": "NameCount",
+      "type": "object"
+    },
+    "Network": {
+      "additionalProperties": false,
+      "properties": {
+        "countries": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Countries",
+          "type": "array"
+        },
+        "failures": {
+          "title": "Failures",
+          "type": "integer"
+        },
+        "identifiers": {
+          "title": "Identifiers",
+          "type": "integer"
+        },
+        "ip_prefix_hash": {
+          "title": "Ip Prefix Hash",
+          "type": "string"
+        },
+        "last_at": {
+          "format": "date-time",
+          "title": "Last At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "ip_prefix_hash",
+        "failures",
+        "identifiers",
+        "countries",
+        "last_at"
+      ],
+      "title": "Network",
+      "type": "object"
+    },
+    "OnlineNow": {
+      "additionalProperties": false,
+      "properties": {
+        "generated_at": {
+          "format": "date-time",
+          "title": "Generated At",
+          "type": "string"
+        },
+        "live_sessions": {
+          "title": "Live Sessions",
+          "type": "integer"
+        },
+        "online_now": {
+          "title": "Online Now",
+          "type": "integer"
+        },
+        "users_with_live_sessions": {
+          "title": "Users With Live Sessions",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "online_now",
+        "live_sessions",
+        "users_with_live_sessions",
+        "generated_at"
+      ],
+      "title": "OnlineNow",
+      "type": "object"
+    },
+    "OrgDetail": {
+      "additionalProperties": false,
+      "properties": {
+        "domains": {
+          "items": {
+            "$ref": "#/$defs/OrgDomain"
+          },
+          "title": "Domains",
+          "type": "array"
+        },
+        "member_counts": {
+          "$ref": "#/$defs/OrgMemberCounts"
+        },
+        "org": {
+          "$ref": "#/$defs/OrgRow"
+        },
+        "plan": {
+          "$ref": "#/$defs/SubjectPlan"
+        }
+      },
+      "required": [
+        "org",
+        "domains",
+        "member_counts",
+        "plan"
+      ],
+      "title": "OrgDetail",
+      "type": "object"
+    },
+    "OrgDomain": {
+      "additionalProperties": false,
+      "properties": {
+        "domain": {
+          "title": "Domain",
+          "type": "string"
+        },
+        "verified": {
+          "title": "Verified",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "domain",
+        "verified"
+      ],
+      "title": "OrgDomain",
+      "type": "object"
+    },
+    "OrgList": {
+      "additionalProperties": false,
+      "properties": {
+        "items": {
+          "items": {
+            "$ref": "#/$defs/OrgRow"
+          },
+          "title": "Items",
+          "type": "array"
+        },
+        "next_cursor": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Next Cursor"
+        }
+      },
+      "required": [
+        "items"
+      ],
+      "title": "OrgList",
+      "type": "object"
+    },
+    "OrgMemberCounts": {
+      "additionalProperties": false,
+      "properties": {
+        "org_admins": {
+          "title": "Org Admins",
+          "type": "integer"
+        },
+        "org_owners": {
+          "title": "Org Owners",
+          "type": "integer"
+        },
+        "students": {
+          "title": "Students",
+          "type": "integer"
+        },
+        "teachers": {
+          "title": "Teachers",
+          "type": "integer"
+        },
+        "total": {
+          "title": "Total",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "total",
+        "teachers",
+        "students",
+        "org_owners",
+        "org_admins"
+      ],
+      "title": "OrgMemberCounts",
+      "type": "object"
+    },
+    "OrgRef": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "integer"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "name"
+      ],
+      "title": "OrgRef",
+      "type": "object"
+    },
+    "OrgRow": {
+      "additionalProperties": false,
+      "properties": {
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        },
+        "id": {
+          "title": "Id",
+          "type": "integer"
+        },
+        "members": {
+          "title": "Members",
+          "type": "integer"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "plan": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PlanRef"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "slug": {
+          "title": "Slug",
+          "type": "string"
+        },
+        "sso_enforced": {
+          "title": "Sso Enforced",
+          "type": "boolean"
+        },
+        "sso_provider": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Sso Provider"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "slug",
+        "sso_provider",
+        "sso_enforced",
+        "created_at",
+        "members",
+        "plan"
+      ],
+      "title": "OrgRow",
+      "type": "object"
+    },
+    "OutboxEvent": {
+      "additionalProperties": false,
+      "properties": {
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        },
+        "id": {
+          "title": "Id",
+          "type": "integer"
+        },
+        "kind": {
+          "enum": [
+            "ticket.created",
+            "ticket.user_replied"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "ticket_id": {
+          "title": "Ticket Id",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "id",
+        "kind",
+        "ticket_id",
+        "created_at"
+      ],
+      "title": "OutboxEvent",
+      "type": "object"
+    },
+    "Overview": {
+      "additionalProperties": false,
+      "properties": {
+        "accounts": {
+          "$ref": "#/$defs/Accounts"
+        },
+        "activity": {
+          "$ref": "#/$defs/Activity"
+        },
+        "generated_at": {
+          "format": "date-time",
+          "title": "Generated At",
+          "type": "string"
+        },
+        "range": {
+          "$ref": "#/$defs/Range"
+        },
+        "sessions": {
+          "$ref": "#/$defs/Sessions"
+        },
+        "sign_ins": {
+          "$ref": "#/$defs/SignInsToday"
+        },
+        "storage": {
+          "$ref": "#/$defs/Storage"
+        },
+        "tickets": {
+          "$ref": "#/$defs/OverviewTickets"
+        },
+        "usage": {
+          "$ref": "#/$defs/OverviewUsage"
+        }
+      },
+      "required": [
+        "range",
+        "accounts",
+        "activity",
+        "sign_ins",
+        "sessions",
+        "usage",
+        "tickets",
+        "storage",
+        "generated_at"
+      ],
+      "title": "Overview",
+      "type": "object"
+    },
+    "OverviewTickets": {
+      "additionalProperties": false,
+      "properties": {
+        "oldest_open_hours": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Oldest Open Hours"
+        },
+        "open": {
+          "title": "Open",
+          "type": "integer"
+        },
+        "waiting_on_us": {
+          "title": "Waiting On Us",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "open",
+        "waiting_on_us",
+        "oldest_open_hours"
+      ],
+      "title": "OverviewTickets",
+      "type": "object"
+    },
+    "OverviewUsage": {
+      "additionalProperties": false,
+      "properties": {
+        "budget_month_usd": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Budget Month Usd"
+        },
+        "cost_month_usd": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Cost Month Usd"
+        },
+        "cost_today_usd": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Cost Today Usd"
+        },
+        "tokens_today": {
+          "title": "Tokens Today",
+          "type": "integer"
+        },
+        "top_features_month": {
+          "items": {
+            "$ref": "#/$defs/FeatureCost"
+          },
+          "title": "Top Features Month",
+          "type": "array"
+        }
+      },
+      "required": [
+        "tokens_today",
+        "cost_today_usd",
+        "cost_month_usd",
+        "budget_month_usd",
+        "top_features_month"
+      ],
+      "title": "OverviewUsage",
+      "type": "object"
+    },
+    "Plan": {
+      "additionalProperties": false,
+      "properties": {
+        "assignments": {
+          "$ref": "#/$defs/AssignmentCounts"
+        },
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        },
+        "currency": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Currency"
+        },
+        "description": {
+          "title": "Description",
+          "type": "string"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "interval": {
+          "anyOf": [
+            {
+              "enum": [
+                "month",
+                "year"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Interval"
+        },
+        "is_active": {
+          "title": "Is Active",
+          "type": "boolean"
+        },
+        "is_default": {
+          "title": "Is Default",
+          "type": "boolean"
+        },
+        "limits": {
+          "$ref": "#/$defs/PlanLimits"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "price_cents": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Price Cents"
+        },
+        "updated_at": {
+          "format": "date-time",
+          "title": "Updated At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "description",
+        "is_default",
+        "is_active",
+        "limits",
+        "price_cents",
+        "currency",
+        "interval",
+        "created_at",
+        "updated_at",
+        "assignments"
+      ],
+      "title": "Plan",
+      "type": "object"
+    },
+    "PlanLimits": {
+      "additionalProperties": false,
+      "properties": {
+        "family_seats": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Family Seats"
+        },
+        "max_study_sessions": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Max Study Sessions"
+        },
+        "max_upload_mb": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Max Upload Mb"
+        },
+        "monthly_ai_cost_usd": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Monthly Ai Cost Usd"
+        },
+        "monthly_ai_tokens": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Monthly Ai Tokens"
+        },
+        "monthly_transcription_minutes": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Monthly Transcription Minutes"
+        },
+        "monthly_tts_characters": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Monthly Tts Characters"
+        },
+        "pictures": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Pictures"
+        },
+        "teach_mode": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Teach Mode"
+        },
+        "youtube_import": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Youtube Import"
+        }
+      },
+      "title": "PlanLimits",
+      "type": "object"
+    },
+    "PlanList": {
+      "additionalProperties": false,
+      "properties": {
+        "items": {
+          "items": {
+            "$ref": "#/$defs/Plan"
+          },
+          "title": "Items",
+          "type": "array"
+        }
+      },
+      "required": [
+        "items"
+      ],
+      "title": "PlanList",
+      "type": "object"
+    },
+    "PlanName": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "name"
+      ],
+      "title": "PlanName",
+      "type": "object"
+    },
+    "PlanRef": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "source": {
+          "enum": [
+            "user",
+            "organization",
+            "default"
+          ],
+          "title": "Source",
+          "type": "string"
+        },
+        "status": {
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "source",
+        "status"
+      ],
+      "title": "PlanRef",
+      "type": "object"
+    },
+    "Price": {
+      "additionalProperties": false,
+      "properties": {
+        "cache_read_per_mtok": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Cache Read Per Mtok"
+        },
+        "cache_write_per_mtok": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Cache Write Per Mtok"
+        },
+        "input_per_mtok": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Input Per Mtok"
+        },
+        "model": {
+          "title": "Model",
+          "type": "string"
+        },
+        "output_per_mtok": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Output Per Mtok"
+        },
+        "per_mchar": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Per Mchar"
+        },
+        "per_request": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Per Request"
+        },
+        "provider": {
+          "title": "Provider",
+          "type": "string"
+        }
+      },
+      "required": [
+        "provider",
+        "model",
+        "input_per_mtok",
+        "output_per_mtok",
+        "cache_read_per_mtok",
+        "cache_write_per_mtok",
+        "per_mchar",
+        "per_request"
+      ],
+      "title": "Price",
+      "type": "object"
+    },
+    "Prices": {
+      "additionalProperties": false,
+      "properties": {
+        "budget_month_usd": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Budget Month Usd"
+        },
+        "currency": {
+          "const": "USD",
+          "default": "USD",
+          "title": "Currency",
+          "type": "string"
+        },
+        "items": {
+          "items": {
+            "$ref": "#/$defs/Price"
+          },
+          "title": "Items",
+          "type": "array"
+        },
+        "source": {
+          "title": "Source",
+          "type": "string"
+        }
+      },
+      "required": [
+        "items",
+        "source",
+        "budget_month_usd"
+      ],
+      "title": "Prices",
+      "type": "object"
+    },
+    "Profile": {
+      "additionalProperties": false,
+      "properties": {
+        "auth_provider": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Auth Provider"
+        },
+        "credentials_locked": {
+          "title": "Credentials Locked",
+          "type": "boolean"
+        },
+        "deleted_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Deleted At"
+        },
+        "email_domain": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Email Domain"
+        },
+        "is_demo": {
+          "title": "Is Demo",
+          "type": "boolean"
+        },
+        "onboarding_completed": {
+          "title": "Onboarding Completed",
+          "type": "boolean"
+        },
+        "org_role": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Org Role"
+        },
+        "pin_locked_until": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Pin Locked Until"
+        },
+        "xp": {
+          "title": "Xp",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "auth_provider",
+        "org_role",
+        "onboarding_completed",
+        "credentials_locked",
+        "pin_locked_until",
+        "xp",
+        "deleted_at",
+        "is_demo",
+        "email_domain"
+      ],
+      "title": "Profile",
+      "type": "object"
+    },
+    "Range": {
+      "additionalProperties": false,
+      "properties": {
+        "from": {
+          "format": "date",
+          "title": "From",
+          "type": "string"
+        },
+        "to": {
+          "format": "date",
+          "title": "To",
+          "type": "string"
+        },
+        "tz": {
+          "const": "UTC",
+          "default": "UTC",
+          "title": "Tz",
+          "type": "string"
+        }
+      },
+      "required": [
+        "from",
+        "to"
+      ],
+      "title": "Range",
+      "type": "object"
+    },
+    "ReasonCount": {
+      "additionalProperties": false,
+      "properties": {
+        "count": {
+          "title": "Count",
+          "type": "integer"
+        },
+        "reason": {
+          "title": "Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "reason",
+        "count"
+      ],
+      "title": "ReasonCount",
+      "type": "object"
+    },
+    "RevealedEmail": {
+      "additionalProperties": false,
+      "properties": {
+        "email": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Email"
+        },
+        "first_name": {
+          "title": "First Name",
+          "type": "string"
+        }
+      },
+      "required": [
+        "email",
+        "first_name"
+      ],
+      "title": "RevealedEmail",
+      "type": "object"
+    },
+    "SecuritySummary": {
+      "additionalProperties": false,
+      "properties": {
+        "failed_per_hour": {
+          "items": {
+            "$ref": "#/$defs/HourCount"
+          },
+          "title": "Failed Per Hour",
+          "type": "array"
+        },
+        "failures_by_reason": {
+          "items": {
+            "$ref": "#/$defs/ReasonCount"
+          },
+          "title": "Failures By Reason",
+          "type": "array"
+        },
+        "range": {
+          "$ref": "#/$defs/Range"
+        },
+        "top_networks": {
+          "items": {
+            "$ref": "#/$defs/Network"
+          },
+          "title": "Top Networks",
+          "type": "array"
+        },
+        "totals": {
+          "$ref": "#/$defs/SecurityTotals"
+        }
+      },
+      "required": [
+        "range",
+        "totals",
+        "failed_per_hour",
+        "failures_by_reason",
+        "top_networks"
+      ],
+      "title": "SecuritySummary",
+      "type": "object"
+    },
+    "SecurityTotals": {
+      "additionalProperties": false,
+      "properties": {
+        "failed": {
+          "title": "Failed",
+          "type": "integer"
+        },
+        "lockouts": {
+          "title": "Lockouts",
+          "type": "integer"
+        },
+        "pin_resets": {
+          "title": "Pin Resets",
+          "type": "integer"
+        },
+        "replays": {
+          "title": "Replays",
+          "type": "integer"
+        },
+        "sign_ins": {
+          "title": "Sign Ins",
+          "type": "integer"
+        },
+        "sign_outs_everywhere": {
+          "title": "Sign Outs Everywhere",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "sign_ins",
+        "failed",
+        "lockouts",
+        "replays",
+        "pin_resets",
+        "sign_outs_everywhere"
+      ],
+      "title": "SecurityTotals",
+      "type": "object"
+    },
+    "SessionDevice": {
+      "additionalProperties": false,
+      "properties": {
+        "country": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Country"
+        },
+        "last_refresh_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Last Refresh At"
+        },
+        "method": {
+          "anyOf": [
+            {
+              "enum": [
+                "password",
+                "google",
+                "microsoft",
+                "pin",
+                "desktop"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Method"
+        },
+        "ua_family": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Ua Family"
+        }
+      },
+      "required": [
+        "ua_family",
+        "country",
+        "method",
+        "last_refresh_at"
+      ],
+      "title": "SessionDevice",
+      "type": "object"
+    },
+    "SessionList": {
+      "additionalProperties": false,
+      "properties": {
+        "items": {
+          "items": {
+            "$ref": "#/$defs/LiveSession"
+          },
+          "title": "Items",
+          "type": "array"
+        },
+        "next_cursor": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Next Cursor"
+        }
+      },
+      "required": [
+        "items"
+      ],
+      "title": "SessionList",
+      "type": "object"
+    },
+    "Sessions": {
+      "additionalProperties": false,
+      "properties": {
+        "live": {
+          "title": "Live",
+          "type": "integer"
+        },
+        "users_with_live_sessions": {
+          "title": "Users With Live Sessions",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "live",
+        "users_with_live_sessions"
+      ],
+      "title": "Sessions",
+      "type": "object"
+    },
+    "SignInPoint": {
+      "additionalProperties": false,
+      "properties": {
+        "count": {
+          "title": "Count",
+          "type": "integer"
+        },
+        "day": {
+          "format": "date",
+          "title": "Day",
+          "type": "string"
+        },
+        "method": {
+          "title": "Method",
+          "type": "string"
+        }
+      },
+      "required": [
+        "day",
+        "method",
+        "count"
+      ],
+      "title": "SignInPoint",
+      "type": "object"
+    },
+    "SignInTotals": {
+      "additionalProperties": false,
+      "properties": {
+        "failures": {
+          "title": "Failures",
+          "type": "integer"
+        },
+        "sign_ins": {
+          "title": "Sign Ins",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "sign_ins",
+        "failures"
+      ],
+      "title": "SignInTotals",
+      "type": "object"
+    },
+    "SignIns": {
+      "additionalProperties": false,
+      "properties": {
+        "failures": {
+          "items": {
+            "$ref": "#/$defs/DayCount"
+          },
+          "title": "Failures",
+          "type": "array"
+        },
+        "group": {
+          "const": "method",
+          "title": "Group",
+          "type": "string"
+        },
+        "range": {
+          "$ref": "#/$defs/Range"
+        },
+        "series": {
+          "items": {
+            "$ref": "#/$defs/SignInPoint"
+          },
+          "title": "Series",
+          "type": "array"
+        },
+        "totals": {
+          "$ref": "#/$defs/SignInTotals"
+        }
+      },
+      "required": [
+        "range",
+        "group",
+        "series",
+        "failures",
+        "totals"
+      ],
+      "title": "SignIns",
+      "type": "object"
+    },
+    "SignInsToday": {
+      "additionalProperties": false,
+      "properties": {
+        "by_method_today": {
+          "additionalProperties": {
+            "type": "integer"
+          },
+          "title": "By Method Today",
+          "type": "object"
+        },
+        "failed_today": {
+          "title": "Failed Today",
+          "type": "integer"
+        },
+        "today": {
+          "title": "Today",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "today",
+        "failed_today",
+        "by_method_today"
+      ],
+      "title": "SignInsToday",
+      "type": "object"
+    },
+    "SignOutResult": {
+      "additionalProperties": false,
+      "properties": {
+        "sessions_ended": {
+          "title": "Sessions Ended",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "sessions_ended"
+      ],
+      "title": "SignOutResult",
+      "type": "object"
+    },
+    "Storage": {
+      "additionalProperties": false,
+      "properties": {
+        "pdf_bytes": {
+          "title": "Pdf Bytes",
+          "type": "integer"
+        },
+        "pdfs": {
+          "title": "Pdfs",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "pdfs",
+        "pdf_bytes"
+      ],
+      "title": "Storage",
+      "type": "object"
+    },
+    "SubjectPlan": {
+      "additionalProperties": false,
+      "properties": {
+        "effective": {
+          "$ref": "#/$defs/EffectivePlan"
+        },
+        "history": {
+          "items": {
+            "$ref": "#/$defs/Assignment"
+          },
+          "title": "History",
+          "type": "array"
+        }
+      },
+      "required": [
+        "effective",
+        "history"
+      ],
+      "title": "SubjectPlan",
+      "type": "object"
+    },
+    "TicketContext": {
+      "additionalProperties": false,
+      "properties": {
+        "app_version": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "App Version"
+        },
+        "browser": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Browser"
+        },
+        "from": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "From"
+        },
+        "language": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Language"
+        },
+        "session_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Session Id"
+        },
+        "timezone": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Timezone"
+        },
+        "viewport": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Viewport"
+        }
+      },
+      "title": "TicketContext",
+      "type": "object"
+    },
+    "TicketCounts": {
+      "additionalProperties": false,
+      "properties": {
+        "closed": {
+          "title": "Closed",
+          "type": "integer"
+        },
+        "open": {
+          "title": "Open",
+          "type": "integer"
+        },
+        "resolved": {
+          "title": "Resolved",
+          "type": "integer"
+        },
+        "waiting_on_us": {
+          "title": "Waiting On Us",
+          "type": "integer"
+        },
+        "waiting_on_user": {
+          "title": "Waiting On User",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "open",
+        "waiting_on_us",
+        "waiting_on_user",
+        "resolved",
+        "closed"
+      ],
+      "title": "TicketCounts",
+      "type": "object"
+    },
+    "TicketDetail": {
+      "additionalProperties": false,
+      "properties": {
+        "closed_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Closed At"
+        },
+        "context": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TicketContext"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "messages": {
+          "items": {
+            "$ref": "#/$defs/TicketMessage"
+          },
+          "title": "Messages",
+          "type": "array"
+        },
+        "page_url": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Page Url"
+        },
+        "ticket": {
+          "$ref": "#/$defs/TicketRow"
+        },
+        "user": {
+          "$ref": "#/$defs/TicketUser"
+        }
+      },
+      "required": [
+        "ticket",
+        "page_url",
+        "context",
+        "closed_at",
+        "messages",
+        "user"
+      ],
+      "title": "TicketDetail",
+      "type": "object"
+    },
+    "TicketList": {
+      "additionalProperties": false,
+      "properties": {
+        "counts": {
+          "$ref": "#/$defs/TicketCounts"
+        },
+        "items": {
+          "items": {
+            "$ref": "#/$defs/TicketRow"
+          },
+          "title": "Items",
+          "type": "array"
+        },
+        "next_cursor": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Next Cursor"
+        }
+      },
+      "required": [
+        "items",
+        "counts"
+      ],
+      "title": "TicketList",
+      "type": "object"
+    },
+    "TicketMessage": {
+      "additionalProperties": false,
+      "properties": {
+        "author": {
+          "enum": [
+            "user",
+            "staff",
+            "system"
+          ],
+          "title": "Author",
+          "type": "string"
+        },
+        "body": {
+          "title": "Body",
+          "type": "string"
+        },
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        },
+        "id": {
+          "title": "Id",
+          "type": "integer"
+        },
+        "internal": {
+          "title": "Internal",
+          "type": "boolean"
+        },
+        "staff_email": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Staff Email"
+        }
+      },
+      "required": [
+        "id",
+        "author",
+        "staff_email",
+        "body",
+        "internal",
+        "created_at"
+      ],
+      "title": "TicketMessage",
+      "type": "object"
+    },
+    "TicketRow": {
+      "additionalProperties": false,
+      "properties": {
+        "assignee_email": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Assignee Email"
+        },
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        },
+        "id": {
+          "title": "Id",
+          "type": "integer"
+        },
+        "last_staff_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Last Staff At"
+        },
+        "last_user_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Last User At"
+        },
+        "message_count": {
+          "title": "Message Count",
+          "type": "integer"
+        },
+        "number": {
+          "title": "Number",
+          "type": "string"
+        },
+        "preview": {
+          "title": "Preview",
+          "type": "string"
+        },
+        "priority": {
+          "enum": [
+            "low",
+            "normal",
+            "high",
+            "urgent"
+          ],
+          "title": "Priority",
+          "type": "string"
+        },
+        "reason": {
+          "title": "Reason",
+          "type": "string"
+        },
+        "reason_label": {
+          "title": "Reason Label",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "open",
+            "waiting_on_us",
+            "waiting_on_user",
+            "resolved",
+            "closed"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "subject": {
+          "title": "Subject",
+          "type": "string"
+        },
+        "tags": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Tags",
+          "type": "array"
+        },
+        "updated_at": {
+          "format": "date-time",
+          "title": "Updated At",
+          "type": "string"
+        },
+        "user": {
+          "$ref": "#/$defs/UserRef"
+        }
+      },
+      "required": [
+        "id",
+        "number",
+        "reason",
+        "reason_label",
+        "subject",
+        "status",
+        "priority",
+        "assignee_email",
+        "tags",
+        "user",
+        "created_at",
+        "updated_at",
+        "last_user_at",
+        "last_staff_at",
+        "message_count",
+        "preview"
+      ],
+      "title": "TicketRow",
+      "type": "object"
+    },
+    "TicketUser": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "integer"
+        },
+        "identity": {
+          "$ref": "#/$defs/Identity"
+        },
+        "kind": {
+          "enum": [
+            "standard",
+            "managed_child"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "last_seen_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Last Seen At"
+        },
+        "organization": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/OrgRef"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "plan": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PlanRef"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "usage_30d": {
+          "$ref": "#/$defs/Usage30d"
+        }
+      },
+      "required": [
+        "id",
+        "identity",
+        "kind",
+        "organization",
+        "plan",
+        "last_seen_at",
+        "usage_30d"
+      ],
+      "title": "TicketUser",
+      "type": "object"
+    },
+    "TopUser": {
+      "additionalProperties": false,
+      "properties": {
+        "calls": {
+          "title": "Calls",
+          "type": "integer"
+        },
+        "characters": {
+          "title": "Characters",
+          "type": "integer"
+        },
+        "cost_usd": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Cost Usd"
+        },
+        "tokens": {
+          "title": "Tokens",
+          "type": "integer"
+        },
+        "user": {
+          "$ref": "#/$defs/UserRef"
+        },
+        "value": {
+          "title": "Value",
+          "type": "number"
+        }
+      },
+      "required": [
+        "user",
+        "value",
+        "calls",
+        "tokens",
+        "characters",
+        "cost_usd"
+      ],
+      "title": "TopUser",
+      "type": "object"
+    },
+    "TopUsers": {
+      "additionalProperties": false,
+      "properties": {
+        "items": {
+          "items": {
+            "$ref": "#/$defs/TopUser"
+          },
+          "title": "Items",
+          "type": "array"
+        },
+        "metric": {
+          "enum": [
+            "cost",
+            "tokens",
+            "characters"
+          ],
+          "title": "Metric",
+          "type": "string"
+        },
+        "range": {
+          "$ref": "#/$defs/Range"
+        }
+      },
+      "required": [
+        "range",
+        "metric",
+        "items"
+      ],
+      "title": "TopUsers",
+      "type": "object"
+    },
+    "Usage30d": {
+      "additionalProperties": false,
+      "properties": {
+        "cost_usd": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Cost Usd"
+        },
+        "tokens": {
+          "title": "Tokens",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "tokens",
+        "cost_usd"
+      ],
+      "title": "Usage30d",
+      "type": "object"
+    },
+    "UsageNumbers": {
+      "additionalProperties": false,
+      "properties": {
+        "audio_ms": {
+          "title": "Audio Ms",
+          "type": "integer"
+        },
+        "cache_read_tokens": {
+          "title": "Cache Read Tokens",
+          "type": "integer"
+        },
+        "cache_write_tokens": {
+          "title": "Cache Write Tokens",
+          "type": "integer"
+        },
+        "calls": {
+          "title": "Calls",
+          "type": "integer"
+        },
+        "characters": {
+          "title": "Characters",
+          "type": "integer"
+        },
+        "cost_usd": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Cost Usd"
+        },
+        "input_tokens": {
+          "title": "Input Tokens",
+          "type": "integer"
+        },
+        "output_tokens": {
+          "title": "Output Tokens",
+          "type": "integer"
+        },
+        "unpriced_calls": {
+          "title": "Unpriced Calls",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "calls",
+        "input_tokens",
+        "output_tokens",
+        "cache_read_tokens",
+        "cache_write_tokens",
+        "characters",
+        "audio_ms",
+        "cost_usd",
+        "unpriced_calls"
+      ],
+      "title": "UsageNumbers",
+      "type": "object"
+    },
+    "UsagePoint": {
+      "additionalProperties": false,
+      "properties": {
+        "audio_ms": {
+          "title": "Audio Ms",
+          "type": "integer"
+        },
+        "calls": {
+          "title": "Calls",
+          "type": "integer"
+        },
+        "characters": {
+          "title": "Characters",
+          "type": "integer"
+        },
+        "cost_usd": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Cost Usd"
+        },
+        "day": {
+          "format": "date",
+          "title": "Day",
+          "type": "string"
+        },
+        "key": {
+          "title": "Key",
+          "type": "string"
+        },
+        "tokens": {
+          "title": "Tokens",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "day",
+        "key",
+        "calls",
+        "tokens",
+        "characters",
+        "audio_ms",
+        "cost_usd"
+      ],
+      "title": "UsagePoint",
+      "type": "object"
+    },
+    "UsageRow": {
+      "additionalProperties": false,
+      "properties": {
+        "audio_ms": {
+          "title": "Audio Ms",
+          "type": "integer"
+        },
+        "cache_read_tokens": {
+          "title": "Cache Read Tokens",
+          "type": "integer"
+        },
+        "cache_write_tokens": {
+          "title": "Cache Write Tokens",
+          "type": "integer"
+        },
+        "calls": {
+          "title": "Calls",
+          "type": "integer"
+        },
+        "characters": {
+          "title": "Characters",
+          "type": "integer"
+        },
+        "cost_usd": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Cost Usd"
+        },
+        "input_tokens": {
+          "title": "Input Tokens",
+          "type": "integer"
+        },
+        "key": {
+          "title": "Key",
+          "type": "string"
+        },
+        "output_tokens": {
+          "title": "Output Tokens",
+          "type": "integer"
+        },
+        "unpriced_calls": {
+          "title": "Unpriced Calls",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "calls",
+        "input_tokens",
+        "output_tokens",
+        "cache_read_tokens",
+        "cache_write_tokens",
+        "characters",
+        "audio_ms",
+        "cost_usd",
+        "unpriced_calls",
+        "key"
+      ],
+      "title": "UsageRow",
+      "type": "object"
+    },
+    "UsageSummary": {
+      "additionalProperties": false,
+      "properties": {
+        "group": {
+          "enum": [
+            "day",
+            "feature",
+            "provider",
+            "model"
+          ],
+          "title": "Group",
+          "type": "string"
+        },
+        "month_to_date": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/MonthToDate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "range": {
+          "$ref": "#/$defs/Range"
+        },
+        "rows": {
+          "items": {
+            "$ref": "#/$defs/UsageRow"
+          },
+          "title": "Rows",
+          "type": "array"
+        },
+        "series": {
+          "items": {
+            "$ref": "#/$defs/UsagePoint"
+          },
+          "title": "Series",
+          "type": "array"
+        },
+        "totals": {
+          "$ref": "#/$defs/UsageNumbers"
+        }
+      },
+      "required": [
+        "range",
+        "group",
+        "totals",
+        "rows",
+        "series"
+      ],
+      "title": "UsageSummary",
+      "type": "object"
+    },
+    "UserDetail": {
+      "additionalProperties": false,
+      "properties": {
+        "activity_30d": {
+          "items": {
+            "$ref": "#/$defs/ActiveDay"
+          },
+          "title": "Activity 30D",
+          "type": "array"
+        },
+        "family": {
+          "$ref": "#/$defs/Family"
+        },
+        "footprint": {
+          "$ref": "#/$defs/Footprint"
+        },
+        "note": {
+          "title": "Note",
+          "type": "string"
+        },
+        "profile": {
+          "$ref": "#/$defs/Profile"
+        },
+        "security": {
+          "$ref": "#/$defs/UserSecurity"
+        },
+        "usage_by_feature_30d": {
+          "items": {
+            "$ref": "#/$defs/FeatureUsage"
+          },
+          "title": "Usage By Feature 30D",
+          "type": "array"
+        },
+        "user": {
+          "$ref": "#/$defs/UserRow"
+        }
+      },
+      "required": [
+        "user",
+        "profile",
+        "footprint",
+        "family",
+        "security",
+        "usage_by_feature_30d",
+        "activity_30d",
+        "note"
+      ],
+      "title": "UserDetail",
+      "type": "object"
+    },
+    "UserList": {
+      "additionalProperties": false,
+      "properties": {
+        "items": {
+          "items": {
+            "$ref": "#/$defs/UserRow"
+          },
+          "title": "Items",
+          "type": "array"
+        },
+        "next_cursor": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Next Cursor"
+        }
+      },
+      "required": [
+        "items"
+      ],
+      "title": "UserList",
+      "type": "object"
+    },
+    "UserRef": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "integer"
+        },
+        "identity": {
+          "$ref": "#/$defs/Identity"
+        },
+        "kind": {
+          "enum": [
+            "standard",
+            "managed_child"
+          ],
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "identity",
+        "kind"
+      ],
+      "title": "UserRef",
+      "type": "object"
+    },
+    "UserRow": {
+      "additionalProperties": false,
+      "properties": {
+        "age_band": {
+          "enum": [
+            "under_13",
+            "13_17",
+            "18_plus",
+            "unknown"
+          ],
+          "title": "Age Band",
+          "type": "string"
+        },
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        },
+        "flags": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Flags",
+          "type": "array"
+        },
+        "id": {
+          "title": "Id",
+          "type": "integer"
+        },
+        "identity": {
+          "$ref": "#/$defs/Identity"
+        },
+        "kind": {
+          "enum": [
+            "standard",
+            "managed_child"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "last_login": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Last Login"
+        },
+        "last_seen_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Last Seen At"
+        },
+        "live_sessions": {
+          "title": "Live Sessions",
+          "type": "integer"
+        },
+        "open_tickets": {
+          "title": "Open Tickets",
+          "type": "integer"
+        },
+        "organization": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/OrgRef"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "plan": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PlanRef"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "role": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Role"
+        },
+        "status": {
+          "enum": [
+            "active",
+            "deactivated",
+            "deleted"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "usage_30d": {
+          "$ref": "#/$defs/Usage30d"
+        }
+      },
+      "required": [
+        "id",
+        "identity",
+        "kind",
+        "role",
+        "age_band",
+        "organization",
+        "plan",
+        "created_at",
+        "last_login",
+        "last_seen_at",
+        "live_sessions",
+        "usage_30d",
+        "open_tickets",
+        "status",
+        "flags"
+      ],
+      "title": "UserRow",
+      "type": "object"
+    },
+    "UserSecurity": {
+      "additionalProperties": false,
+      "properties": {
+        "failed_sign_ins_30d": {
+          "title": "Failed Sign Ins 30D",
+          "type": "integer"
+        },
+        "locked_until": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Locked Until"
+        },
+        "replays_30d": {
+          "title": "Replays 30D",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "failed_sign_ins_30d",
+        "locked_until",
+        "replays_30d"
+      ],
+      "title": "UserSecurity",
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "What the admin app accepts from each admin API endpoint (docs/ADMIN_API_CONTRACT.md). Generated from bff/app/contract.py; every object forbids fields it does not name.",
+  "title": "AnotherNote admin API answers"
+}
