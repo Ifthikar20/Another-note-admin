@@ -242,3 +242,117 @@ def test_searches_never_reach_the_logs(harness, caplog):
     assert "jane.doe" not in logged
     assert "GET /bff/users 200" in logged  # the BFF's own line: the path, never the query
     assert logging.getLogger("httpx").getEffectiveLevel() >= logging.WARNING
+
+
+# --- request ids and logs -------------------------------------------------------------------
+def _lines(caplog, name="bff.request"):
+    return [r for r in caplog.records if r.name == name]
+
+
+def test_the_request_id_is_on_the_answer_the_log_line_and_the_audit_row(harness, caplog):
+    import logging
+
+    h = harness("owner")
+    with caplog.at_level(logging.INFO):
+        r = h.get("/bff/users/5")
+    assert r.status_code == 200
+    rid = r.headers["x-request-id"]
+    row = h.stub.store.audit[-1]
+    assert (row.action, row.request_id) == ("view.user", rid)
+    [line] = [x for x in _lines(caplog) if getattr(x, "request_id", None) == rid]
+    assert (line.method, line.path, line.status, line.actor, line.role) == (
+        "GET",
+        "/bff/users/5",
+        200,
+        "dev@localhost",
+        "owner",
+    )
+    assert line.admin_request_ids is None
+
+
+def test_every_admin_call_of_one_request_gets_its_own_id(harness, caplog, monkeypatch):
+    import logging
+
+    from bff.app.routes import audit
+
+    monkeypatch.setattr(audit, "EXPORT_PAGE", 10)
+    monkeypatch.setattr(audit, "EXPORT_MAX_PAGES", 3)
+    h = harness("owner")
+    before = len(h.stub.store.audit)
+    with caplog.at_level(logging.INFO):
+        r = h.get("/bff/audit/export.csv")
+    rid = r.headers["x-request-id"]
+    ids = [a.request_id for a in h.stub.store.audit[before:]]
+    assert len(ids) == 3 and ids[0] == rid and len(set(ids)) == 3
+    [line] = [x for x in _lines(caplog) if getattr(x, "request_id", None) == rid]
+    assert line.admin_request_ids == ids[1:]
+
+
+def test_refusals_carry_a_request_id_and_are_logged(harness, jwks, make_token, caplog):
+    import logging
+
+    h = production(harness, jwks)
+    with caplog.at_level(logging.INFO):
+        stranger = h.get("/bff/me", headers={"Cf-Access-Jwt-Assertion": make_token("stranger@anothernote.app")})
+        nobody = h.get("/bff/users?q=jane.doe%40example.com")
+        bare = h.client.get("/bff/me", headers={"Cf-Access-Jwt-Assertion": make_token("jane@anothernote.app")})
+    warnings = [x for x in _lines(caplog) if x.levelno == logging.WARNING]
+    by_id = {x.request_id: x for x in warnings}
+    assert by_id[stranger.headers["x-request-id"]].status == 403
+    assert by_id[stranger.headers["x-request-id"]].actor == "stranger@anothernote.app"
+    assert by_id[nobody.headers["x-request-id"]].status == 401
+    assert by_id[nobody.headers["x-request-id"]].path == "/bff/users"
+    refused = by_id[bare.headers["x-request-id"]]
+    assert (refused.status, refused.actor, refused.reason) == (
+        403,
+        "jane@anothernote.app",
+        "no X-Requested-With: admin",
+    )
+    assert "jane.doe" not in "\n".join(x.getMessage() for x in caplog.records)
+
+
+def test_log_lines_cannot_be_forged_through_the_path(harness, caplog):
+    import logging
+
+    h = harness("owner")
+    with caplog.at_level(logging.INFO):
+        h.get("/bff/nothing%0A2026-01-01 INFO bff.request GET /bff/audit 200")
+    assert all("\n" not in x.getMessage() for x in _lines(caplog))
+
+
+def test_json_log_lines_hold_only_the_known_fields():
+    import json
+    import logging
+
+    from bff.app.logs import JsonFormatter
+
+    record = logging.LogRecord("bff.request", logging.INFO, __file__, 1, "GET %s 200", ("/bff/me",), None)
+    record.method, record.path, record.status, record.request_id = "GET", "/bff/me", 200, "r-1"
+    record.secret = "never written"
+    entry = json.loads(JsonFormatter().format(record))
+    assert entry["message"] == "GET /bff/me 200"
+    assert (entry["level"], entry["logger"], entry["status"], entry["request_id"]) == (
+        "INFO",
+        "bff.request",
+        200,
+        "r-1",
+    )
+    assert "secret" not in entry and entry["time"].endswith("+00:00")
+
+
+def test_configuring_logs_twice_adds_one_handler(monkeypatch):
+    import logging
+
+    from bff.app import logs
+
+    root = logging.getLogger()
+    monkeypatch.setattr(root, "handlers", [h for h in root.handlers if not isinstance(h, logs._Handler)])
+    level = root.level
+    try:
+        logs.configure({"LOG_FORMAT": "json"})
+        logs.configure({"LOG_FORMAT": "text"})
+        mine = [h for h in root.handlers if isinstance(h, logs._Handler)]
+        assert len(mine) == 1 and isinstance(mine[0].formatter, logs.JsonFormatter)
+    finally:
+        root.handlers = [h for h in root.handlers if not isinstance(h, logs._Handler)]
+        root.setLevel(level)

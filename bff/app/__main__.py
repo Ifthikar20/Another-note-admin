@@ -12,11 +12,15 @@ import os
 
 import uvicorn
 
+from . import logs
+
 
 def main() -> None:
     host = os.environ.get("ADMIN_BIND_HOST") or "127.0.0.1"
     port = int(os.environ.get("ADMIN_PORT") or "8090")
     os.environ["ADMIN_BIND_HOST"] = host
+    # One format for every line, uvicorn's own included (LOG_FORMAT=json in the image).
+    logs.configure(os.environ)
     uvicorn.run(
         "bff.app.main:app",
         host=host,
@@ -29,6 +33,7 @@ def main() -> None:
         # Nothing here needs the visitor's address, so no forwarded header is believed.
         proxy_headers=False,
         log_level=os.environ.get("LOG_LEVEL", "info").lower(),
+        log_config=None,
     )
 
 

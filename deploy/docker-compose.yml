@@ -1,0 +1,128 @@
+# AnotherNote Admin in production (build specification 7.1): a compose project of its own
+# on the AnotherNote box, in /opt/anothernote-admin, beside playstudy-backend's stack in
+# /opt/playstudy. deploy.sh runs it; docs/DEPLOY.md has the whole procedure.
+#
+# Why not an override of the backend's docker-compose.yml: the backend's deploy-aws.sh runs
+# `docker compose up --remove-orphans` there, which deletes every container of that project
+# that its own file does not define, and an override that put postgres or redis on another
+# network would have both recreated by every deploy of either repo. This project changes
+# nothing in the public stack: the admin API joins its network to reach postgres and redis.
+#
+# Networks
+#   admin      internal (no way out): admin-web and the admin API, nothing else
+#   edge       admin-web and cloudflared. cloudflared dials out to Cloudflare over it, and
+#              admin-web fetches Cloudflare Access's signing keys over it.
+#   playstudy  the public stack's network (external), for postgres and redis only. The
+#              admin API listens on its "admin" address alone, so no container of the
+#              public stack can open a connection to it.
+# No service publishes a port. The only way in is Cloudflare Tunnel, behind Access.
+#
+# .env beside this file comes from SSM (render-env.sh) and is never in git. Its settings:
+#   secrets      ADMIN_DATABASE_URL ADMIN_SERVICE_TOKEN ADMIN_SIGNING_KEY ADMIN_LOOKUP_PEPPER
+#                CF_ACCESS_TEAM_DOMAIN CF_ACCESS_AUD ADMIN_MEMBERS CLOUDFLARE_TUNNEL_TOKEN
+#   the release  ADMIN_WEB_IMAGE (the ECR repository) and ADMIN_WEB_VERSION (a git SHA)
+#   optional     ADMIN_REDIS_URL ADMIN_PUBLIC_ORIGIN ADMIN_IDLE_LOCK_MINUTES
+#                ADMIN_IDLE_SIGNOUT_MINUTES AWS_REGION ADMIN_LOG_GROUP BACKEND_DIR
+#                PLAYSTUDY_NETWORK
+
+name: anothernote-admin
+
+x-logging: &logging
+  # Off the box: CloudWatch Logs, in a group created with its retention (docs/DEPLOY.md).
+  # docker logs still works (Docker keeps a local copy).
+  driver: awslogs
+  options:
+    awslogs-region: ${AWS_REGION:-us-east-1}
+    awslogs-group: ${ADMIN_LOG_GROUP:-/anothernote/admin}
+    tag: "{{.Name}}"
+    mode: non-blocking
+    max-buffer-size: 4m
+
+x-hardened: &hardened
+  read_only: true
+  security_opt: ["no-new-privileges:true"]
+  cap_drop: [ALL]
+  restart: unless-stopped
+  logging: *logging
+
+services:
+  admin-api:
+    <<: *hardened
+    # The backend's image, built from the tree the backend deploy unpacked (phase 2 adds
+    # app/admin_main.py to it). deploy.sh rebuilds it on every deploy; after a backend
+    # deploy, run deploy.sh again so the two never run different code (docs/DEPLOY.md).
+    build:
+      context: ${BACKEND_DIR:-/opt/playstudy/backend}
+    image: anothernote-admin-api:local
+    container_name: anothernote-admin-api
+    # Build specification 5.8.1, bound to the "admin" address only (the alias below)
+    # instead of 0.0.0.0. The command replaces the image's docker-entrypoint.sh, so this
+    # process runs no schema changes: those are the public backend's, as a role that may.
+    command:
+      - uvicorn
+      - app.admin_main:app
+      - --host=admin-api-private
+      - --port=8001
+      - --workers=1
+      - --no-access-log
+      - --no-server-header
+    # Listed one by one, never the backend's .env: this process gets none of the public
+    # API's secrets (the field encryption key, JWT keys, AI keys).
+    environment:
+      ENVIRONMENT: production
+      DATABASE_URL: ${ADMIN_DATABASE_URL:?set ADMIN_DATABASE_URL in SSM}
+      FIELD_ENCRYPTION_DISABLED: "1"
+      REDIS_URL: ${ADMIN_REDIS_URL:-redis://redis:6379/0}
+      ADMIN_SERVICE_TOKEN: ${ADMIN_SERVICE_TOKEN:?set ADMIN_SERVICE_TOKEN in SSM}
+      ADMIN_SIGNING_KEY: ${ADMIN_SIGNING_KEY:?set ADMIN_SIGNING_KEY in SSM}
+      ADMIN_LOOKUP_PEPPER: ${ADMIN_LOOKUP_PEPPER:?set ADMIN_LOOKUP_PEPPER in SSM}
+    tmpfs: [/tmp]
+    # The image's own check calls the public API on :8000. The admin API's /health needs a
+    # signed request, so this only asks whether it accepts connections.
+    healthcheck:
+      test: ["CMD", "python", "-c", "import socket; socket.create_connection(('admin-api-private', 8001), 3).close()"]
+      interval: 30s
+      timeout: 5s
+      start_period: 40s
+      retries: 3
+    networks:
+      admin:
+        aliases: [admin-api-private]
+      playstudy: {}
+
+  admin-web:
+    <<: *hardened
+    image: ${ADMIN_WEB_IMAGE:?set ADMIN_WEB_IMAGE}:${ADMIN_WEB_VERSION:?set ADMIN_WEB_VERSION to the git SHA to run}
+    container_name: anothernote-admin-web
+    environment:
+      ENVIRONMENT: production
+      ADMIN_API_URL: http://admin-api:8001
+      ADMIN_SERVICE_TOKEN: ${ADMIN_SERVICE_TOKEN:?}
+      ADMIN_SIGNING_KEY: ${ADMIN_SIGNING_KEY:?}
+      CF_ACCESS_TEAM_DOMAIN: ${CF_ACCESS_TEAM_DOMAIN:?set CF_ACCESS_TEAM_DOMAIN in SSM}
+      CF_ACCESS_AUD: ${CF_ACCESS_AUD:?set CF_ACCESS_AUD in SSM}
+      ADMIN_MEMBERS: ${ADMIN_MEMBERS:?set ADMIN_MEMBERS in SSM}
+      ADMIN_PUBLIC_ORIGIN: ${ADMIN_PUBLIC_ORIGIN:-https://admin.anothernote.app}
+      ADMIN_IDLE_LOCK_MINUTES: ${ADMIN_IDLE_LOCK_MINUTES:-15}
+      ADMIN_IDLE_SIGNOUT_MINUTES: ${ADMIN_IDLE_SIGNOUT_MINUTES:-60}
+    networks: [admin, edge]
+    depends_on: [admin-api]
+
+  cloudflared:
+    <<: *hardened
+    # Pinned; a new release is a reviewed change to this line (Dependabot proposes them).
+    image: cloudflare/cloudflared:2026.9.3
+    container_name: anothernote-cloudflared
+    command: tunnel --no-autoupdate run
+    environment:
+      TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN:?set CLOUDFLARE_TUNNEL_TOKEN in SSM}
+    networks: [edge]
+    depends_on: [admin-web]
+
+networks:
+  admin:
+    internal: true
+  edge: {}
+  playstudy:
+    external: true
+    name: ${PLAYSTUDY_NETWORK:-playstudy_default}

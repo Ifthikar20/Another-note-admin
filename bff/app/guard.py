@@ -10,12 +10,15 @@ Gatekeeper        who is this, and are they a member? Every request, static file
                   without a preflight, which is never approved), Sec-Fetch-Site must be
                   same-origin when the browser sends it, and a change (POST, PUT, PATCH,
                   DELETE) needs an Origin that is this site. Bodies are capped.
+                  Every /bff answer carries X-Request-Id (logs.py); every /bff request
+                  is logged, path only, and every refusal is logged as a warning.
 """
 
 from __future__ import annotations
 
 import json
 import logging
+import re
 import time
 from collections.abc import Awaitable, Callable
 from typing import Any, Optional
@@ -23,6 +26,7 @@ from urllib.parse import urlsplit
 
 from .access import HEADER as ACCESS_HEADER
 from .access import AccessDenied, AccessUnavailable, AccessVerifier
+from .logs import RequestTrace, begin_trace, end_trace
 from .members import Member
 from .settings import Settings, is_loopback
 
@@ -48,6 +52,15 @@ _PAGE = """<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Ano
 <body style="font-family:system-ui,sans-serif;max-width:32rem;margin:15vh auto;padding:0 1rem;line-height:1.5">
 <p style="font-size:12px;font-weight:700;letter-spacing:.08em;color:#92400e">ANOTHERNOTE ADMIN</p>
 <h1 style="font-size:20px">{title}</h1><p>{body}</p></body></html>"""
+
+
+_CONTROL = re.compile(r"[\x00-\x1f\x7f]")
+_FETCH_SITES = ("cross-site", "same-site", "none")
+
+
+def _loggable(path: str) -> str:
+    """A path as it may appear in a log line: no control characters (no forged lines), bounded."""
+    return _CONTROL.sub("?", path)[:300]
 
 
 def _headers(scope: Scope) -> dict[str, str]:
@@ -97,15 +110,12 @@ _STATIC_HEADERS = [
 _OWNED = {k for k, _ in _STATIC_HEADERS} | {b"server", b"strict-transport-security"}
 
 
-async def _json(send: Send, status: int, code: str, message: str) -> None:
+async def _json(send: Send, status: int, code: str, message: str, request_id: Optional[str] = None) -> None:
     body = json.dumps({"error": {"code": code, "message": message}}).encode()
-    await send(
-        {
-            "type": "http.response.start",
-            "status": status,
-            "headers": [(b"content-type", b"application/json"), (b"content-length", str(len(body)).encode())],
-        }
-    )
+    headers = [(b"content-type", b"application/json"), (b"content-length", str(len(body)).encode())]
+    if request_id:
+        headers.append((b"x-request-id", request_id.encode()))
+    await send({"type": "http.response.start", "status": status, "headers": headers})
     await send({"type": "http.response.body", "body": body})
 
 
@@ -162,25 +172,59 @@ class Gatekeeper:
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         if scope["type"] != "http":
             return await self.app(scope, receive, send)
+        if scope.get("path", "") == HEALTHZ:
+            return await _json_ok(send)
+        trace, token = begin_trace()
+        try:
+            await self._gate(scope, receive, send, trace)
+        finally:
+            end_trace(token)
+
+    async def _gate(self, scope: Scope, receive: Receive, send: Send, trace: RequestTrace) -> None:
         path: str = scope.get("path", "")
         method: str = scope.get("method", "GET")
-        if path == HEALTHZ:
-            return await _json_ok(send)
         api = path == "/bff" or path.startswith("/bff/")
         headers = _headers(scope)
         started = time.monotonic()
+        rid = trace.request_id
+        reply_id = rid if api else None
+        logged_path = _loggable(path)
+
+        def refused(status: int, reason: str, actor: Optional[str] = None, role: Optional[str] = None) -> None:
+            logger.warning(
+                "refused %s %s %s actor=%s: %s",
+                method,
+                logged_path,
+                status,
+                actor or "-",
+                reason,
+                extra={
+                    "method": method,
+                    "path": logged_path,
+                    "status": status,
+                    "actor": actor,
+                    "role": role,
+                    "request_id": rid,
+                    "reason": reason,
+                },
+            )
 
         try:
             member = await self.identify(scope, headers)
         except AccessDenied:
+            refused(401, "no valid Cloudflare Access token")
             if api:
-                return await _json(send, 401, "unauthorized", "Sign in through Cloudflare Access.")
+                return await _json(send, 401, "unauthorized", "Sign in through Cloudflare Access.", reply_id)
             return await _page(send, 401, "Sign in first", "Open this page through Cloudflare Access to sign in.")
         except AccessUnavailable:
-            return await _json(send, 503, "unavailable", "Sign-in cannot be checked right now. Try again shortly.")
-        except PermissionError:
+            refused(503, "Cloudflare Access keys unavailable")
+            return await _json(
+                send, 503, "unavailable", "Sign-in cannot be checked right now. Try again shortly.", reply_id
+            )
+        except PermissionError as e:
+            refused(403, "signed in, but not an admin member", actor=str(e.args[0]) if e.args else None)
             if api:
-                return await _json(send, 403, "forbidden", "You are not an admin member.")
+                return await _json(send, 403, "forbidden", "You are not an admin member.", reply_id)
             return await _page(
                 send,
                 403,
@@ -189,17 +233,24 @@ class Gatekeeper:
             )
 
         if api:
-            if headers.get("x-requested-with") != "admin":
-                return await _json(send, 403, "forbidden", "Requests must come from the admin app.")
+            problem: Optional[tuple[int, str, str, str]] = None
             fetch_site = headers.get("sec-fetch-site")
-            if fetch_site is not None and fetch_site != "same-origin":
-                return await _json(send, 403, "forbidden", "Requests must come from the admin app.")
-            if method not in SAFE_METHODS and not self._same_origin(headers):
-                return await _json(send, 403, "forbidden", "Changes must come from this site.")
             length = headers.get("content-length")
-            if length is not None and (not length.isdigit() or int(length) > MAX_BODY_BYTES):
-                return await _json(send, 413, "invalid", "That request is too large.")
+            if headers.get("x-requested-with") != "admin":
+                problem = (403, "Requests must come from the admin app.", "forbidden", "no X-Requested-With: admin")
+            elif fetch_site is not None and fetch_site != "same-origin":
+                site = fetch_site if fetch_site in _FETCH_SITES else "unexpected value"
+                problem = (403, "Requests must come from the admin app.", "forbidden", f"Sec-Fetch-Site {site}")
+            elif method not in SAFE_METHODS and not self._same_origin(headers):
+                problem = (403, "Changes must come from this site.", "forbidden", "a change without this site's Origin")
+            elif length is not None and (not length.isdigit() or int(length) > MAX_BODY_BYTES):
+                problem = (413, "That request is too large.", "invalid", "body over the size limit")
+            if problem is not None:
+                status, message, code, reason = problem
+                refused(status, reason, member.email, member.role)
+                return await _json(send, status, code, message, reply_id)
         elif method not in SAFE_METHODS:
+            refused(405, "a change outside /bff", member.email, member.role)
             return await _json(send, 405, "invalid", "Method not allowed.")
 
         scope.setdefault("state", {})["member"] = member
@@ -208,21 +259,38 @@ class Gatekeeper:
         async def send_logged(message: dict[str, Any]) -> None:
             if message["type"] == "http.response.start":
                 status_holder["status"] = message["status"]
+                if api:
+                    message = {**message, "headers": [*message.get("headers", []), (b"x-request-id", rid.encode())]}
             await send(message)
 
         try:
             await self.app(scope, _capped(receive), send_logged)
+        except Exception:
+            status_holder["status"] = status_holder["status"] or 500
+            raise
         finally:
             if api:
                 # Path only: queries can hold what staff searched for (an exact email).
+                duration = round((time.monotonic() - started) * 1000)
                 logger.info(
-                    "%s %s %s %dms actor=%s role=%s",
+                    "%s %s %s %dms actor=%s role=%s rid=%s",
                     method,
-                    path,
+                    logged_path,
                     status_holder["status"],
-                    (time.monotonic() - started) * 1000,
+                    duration,
                     member.email,
                     member.role,
+                    rid,
+                    extra={
+                        "method": method,
+                        "path": logged_path,
+                        "status": status_holder["status"],
+                        "duration_ms": duration,
+                        "actor": member.email,
+                        "role": member.role,
+                        "request_id": rid,
+                        "admin_request_ids": trace.extra_admin_ids(),
+                    },
                 )
 
 

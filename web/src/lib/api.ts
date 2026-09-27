@@ -14,6 +14,8 @@ export class ApiError extends Error {
     public status: number,
     public code: string,
     message: string,
+    /** The BFF's X-Request-Id: on its log line, and in the audit row of the call it made. */
+    public requestId: string | null = null,
   ) {
     super(message);
     this.name = "ApiError";
@@ -54,7 +56,7 @@ async function fail(res: Response): Promise<never> {
   } catch {
     /* not JSON: keep the generic message */
   }
-  throw new ApiError(res.status, code, message);
+  throw new ApiError(res.status, code, message, res.headers?.get("x-request-id") ?? null);
 }
 
 export async function request<T>(method: string, path: string, body?: unknown, signal?: AbortSignal): Promise<T> {
@@ -112,7 +114,13 @@ export async function download(path: string, fallbackName: string): Promise<{ ro
   return { rows: rows ? Number(rows) : null, truncated: res.headers.get("x-export-truncated") === "1" };
 }
 
+/**
+ * What to tell staff. A failure on our side (5xx) ends with a short reference, the start
+ * of the request id, so whoever looks into it can find the log line and the audit row.
+ */
 export function errorMessage(e: unknown): string {
-  if (e instanceof ApiError) return e.message;
+  if (e instanceof ApiError) {
+    return e.status >= 500 && e.requestId ? `${e.message} Reference ${e.requestId.slice(0, 8)}.` : e.message;
+  }
   return "Something went wrong. Try again.";
 }

@@ -19,6 +19,7 @@ from urllib.parse import quote
 
 import httpx
 
+from .logs import current_trace
 from .members import Member
 from .settings import Settings
 from .signing import signed_headers
@@ -101,6 +102,7 @@ class AdminClient:
     ) -> httpx.Request:
         target = build_path(path, query)
         content = b"" if body is None else json.dumps(body, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
+        trace = current_trace()
         headers = signed_headers(
             service_token=self._settings.service_token,
             signing_key=self._settings.signing_key,
@@ -109,6 +111,9 @@ class AdminClient:
             actor=actor.email,
             role=actor.role,
             body=content,
+            # The /bff request's own id for its first call, so the audit row the admin API
+            # writes carries the id on the BFF's log line and in the X-Request-Id answer.
+            request_id=trace.next_admin_id() if trace is not None else None,
         )
         headers["Accept"] = accept
         if content:

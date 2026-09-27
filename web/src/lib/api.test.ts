@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { ApiError, SessionEnded, api, query } from "./api";
+import { ApiError, SessionEnded, api, errorMessage, query } from "./api";
 import { session } from "./session";
 
 describe("the BFF client", () => {
@@ -24,6 +24,18 @@ describe("the BFF client", () => {
     const error = await api.get("/audit").catch((e: unknown) => e);
     expect(error).toBeInstanceOf(ApiError);
     expect(error).toMatchObject({ status: 403, code: "forbidden", message: "Owners only." });
+  });
+
+  it("gives failures on our side a reference to look them up by", async () => {
+    const rid = "1f0c2d9e-8b1a-4c3e-9f5d-2a7b6c4d8e10";
+    const failing = (status: number, message: string) =>
+      vi.fn(async () => new Response(JSON.stringify({ error: { code: "unavailable", message } }), { status, headers: { "x-request-id": rid } }));
+    vi.stubGlobal("fetch", failing(502, "The admin API could not be reached."));
+    const error = await api.get("/overview").catch((e: unknown) => e);
+    expect(error).toMatchObject({ status: 502, requestId: rid });
+    expect(errorMessage(error)).toBe("The admin API could not be reached. Reference 1f0c2d9e.");
+    vi.stubGlobal("fetch", failing(400, "Give a reason."));
+    expect(errorMessage(await api.post("/users/5/sign-out-everywhere", {}).catch((e: unknown) => e))).toBe("Give a reason.");
   });
 
   it("ends the session on a 401", async () => {

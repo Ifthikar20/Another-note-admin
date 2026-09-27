@@ -1,0 +1,63 @@
+# The admin app's real image on your own machine, in front of a local admin API.
+#
+#   docker compose -f docker-compose.dev.yml --profile stub up --build
+#       the stand-in admin API (devstub/, made-up data), then open http://127.0.0.1:8090
+#   docker compose -f docker-compose.dev.yml --profile backend up --build
+#       the real admin API from playstudy-backend (build specification 6.7, once phase 2
+#       exists), against that repo's local SQLite database (playstudy_dev.db). Set
+#       BACKEND_DIR if your clone is not ../playstudy-backend (for example
+#       BACKEND_DIR=../plays-study-backend-auth).
+#
+# Host networking, on purpose: the development identity (dev.env) works only on a server
+# bound to 127.0.0.1, and a container can bind this machine's 127.0.0.1 only on the host's
+# network. Linux has it; on Docker Desktop (Windows, macOS) turn on Settings > Resources >
+# Network > "Enable host networking" (Docker Desktop 4.34 or later). Nothing is published
+# to other machines. Without Docker, `python scripts/dev.py --web` does the same.
+
+services:
+  admin-api:
+    profiles: [stub]
+    image: python:3.11-slim-bookworm
+    working_dir: /src
+    volumes:
+      - ./bff:/src/bff:ro
+      - ./devstub:/src/devstub:ro
+    env_file: dev.env
+    environment:
+      STUB_LIVE_EVENTS: "1"
+    command: >-
+      sh -c "pip install --quiet --disable-pip-version-check -r bff/requirements.txt
+      && exec python -m uvicorn devstub.app:app --host 127.0.0.1 --port 8001 --no-access-log"
+    network_mode: host
+
+  admin-api-backend:
+    profiles: [backend]
+    build:
+      context: ${BACKEND_DIR:-../playstudy-backend}
+    # Phase 2 (build specification 5.8): the admin API is a second app in the backend image.
+    command: uvicorn app.admin_main:app --host 127.0.0.1 --port 8001 --workers 1 --no-access-log
+    environment:
+      ENVIRONMENT: development
+      FIELD_ENCRYPTION_DISABLED: "1"
+      DATABASE_URL: sqlite:////data/playstudy_dev.db
+      REDIS_URL: redis://127.0.0.1:6379/0
+      ADMIN_SERVICE_TOKEN: dev-only-service-token-not-a-secret-0000000000
+      ADMIN_SIGNING_KEY: dev-only-signing-key-not-a-secret-11111111111
+      ADMIN_LOOKUP_PEPPER: dev-only-lookup-pepper
+    # Read-write: every admin API request writes its audit row. The image runs as uid 1000,
+    # which must be able to write the database file and its folder.
+    volumes:
+      - ${BACKEND_DIR:-../playstudy-backend}:/data
+    network_mode: host
+
+  admin-web:
+    build: .
+    image: anothernote-admin:dev
+    env_file: dev.env
+    environment:
+      ADMIN_BIND_HOST: 127.0.0.1
+      ADMIN_PORT: "8090"
+    network_mode: host
+    read_only: true
+    security_opt: ["no-new-privileges:true"]
+    cap_drop: [ALL]

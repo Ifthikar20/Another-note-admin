@@ -24,6 +24,7 @@ from fastapi.responses import FileResponse, JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
+from . import logs
 from .access import AccessVerifier
 from .admin_client import AdminApiError, AdminClient
 from .guard import BodyTooLarge, Gatekeeper, SecurityHeaders
@@ -181,9 +182,7 @@ def _mount_spa(app: FastAPI, static_dir: Optional[str]) -> None:
 def __getattr__(name: str) -> Any:
     # `bff.app.main:app` for uvicorn, built on first access (PEP 562).
     if name == "app":
-        logging.basicConfig(
-            level=os.environ.get("LOG_LEVEL", "INFO"), format="%(asctime)s %(levelname)s %(name)s %(message)s"
-        )
+        logs.configure(os.environ)
         application = create_app()
         globals()["app"] = application
         return application
