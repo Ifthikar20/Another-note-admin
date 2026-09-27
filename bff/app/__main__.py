@@ -8,11 +8,14 @@ the development identity (which needs 127.0.0.1).
 
 from __future__ import annotations
 
+import logging
 import os
+import sys
 
 import uvicorn
 
 from . import logs
+from .settings import SettingsError, load_settings
 
 
 def main() -> None:
@@ -21,6 +24,12 @@ def main() -> None:
     os.environ["ADMIN_BIND_HOST"] = host
     # One format for every line, uvicorn's own included (LOG_FORMAT=json in the image).
     logs.configure(os.environ)
+    # A configuration mistake is one clear line and exit status 2, not a traceback.
+    try:
+        load_settings(os.environ, [])
+    except SettingsError as e:
+        logging.getLogger("bff").critical("cannot start: %s", e)
+        sys.exit(2)
     uvicorn.run(
         "bff.app.main:app",
         host=host,

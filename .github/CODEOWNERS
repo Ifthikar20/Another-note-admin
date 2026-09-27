@@ -1,0 +1,13 @@
+# Every change needs a review from an owner (turn on "Require review from Code Owners" in
+# the branch protection rule for main). The author of a pull request cannot approve it, so
+# this takes two people: see docs/SOC2.md, change management.
+*                    @Ifthikar20
+
+# What decides who gets in and what leaves the box: review these with extra care.
+/bff/app/access.py   @Ifthikar20
+/bff/app/guard.py    @Ifthikar20
+/bff/app/members.py  @Ifthikar20
+/bff/app/contract.py @Ifthikar20
+/bff/app/shape.py    @Ifthikar20
+/deploy/             @Ifthikar20
+/.github/            @Ifthikar20

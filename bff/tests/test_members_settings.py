@@ -200,3 +200,23 @@ def test_idle_timeouts():
     ):
         with pytest.raises(SettingsError):
             load_settings(env(**bad), ["x"])
+
+
+def test_the_launcher_refuses_bad_settings_in_one_line(monkeypatch, caplog):
+    import logging
+
+    from bff.app import __main__ as launcher
+
+    for name in ("CF_ACCESS_TEAM_DOMAIN", "CF_ACCESS_AUD", "ADMIN_DEV_IDENTITY", "ADMIN_MEMBERS"):
+        monkeypatch.delenv(name, raising=False)
+    monkeypatch.setenv("ENVIRONMENT", "production")
+    monkeypatch.setenv("ADMIN_API_URL", "http://admin-api:8001")
+    monkeypatch.setenv("ADMIN_SERVICE_TOKEN", "a" * 40)
+    monkeypatch.setenv("ADMIN_SIGNING_KEY", "b" * 40)
+    monkeypatch.setattr(launcher.logs, "configure", lambda env: None)
+    started = []
+    monkeypatch.setattr(launcher.uvicorn, "run", lambda *a, **kw: started.append(a))
+    with caplog.at_level(logging.CRITICAL), pytest.raises(SystemExit) as exit_info:
+        launcher.main()
+    assert exit_info.value.code == 2 and not started
+    assert "cannot start: production needs CF_ACCESS_TEAM_DOMAIN and CF_ACCESS_AUD" in caplog.text

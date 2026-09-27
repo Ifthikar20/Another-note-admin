@@ -11,9 +11,15 @@
 # final image is distroless: Python and the app, no shell, no package manager, no build
 # tools. It runs as a non-root user and needs no writable filesystem (run it with
 # read_only: true). Nothing from devstub/, the tests or the docs is in it.
+#
+# Base images are pinned by digest, so a build is repeatable and a new base is a reviewed
+# change (Dependabot proposes them). The runtime is Debian 13's Python 3.13, not the 3.11
+# of build specification 6.1: distroless's Debian 12 image trails Debian's security fixes
+# (in September 2026 it still had OpenSSL 3.0.19 and CVEs fixed upstream), which the image
+# scan in CI rightly refuses. CI runs the tests on 3.11 and 3.13.
 
 # --- 1. the SPA ---------------------------------------------------------------------------
-FROM node:22-bookworm-slim AS web
+FROM node:22-bookworm-slim@sha256:43ac6c60b8f89723f746e8a92ce91abd5017e627ce1ddfe4238355d3a30b772c AS web
 WORKDIR /web
 COPY web/package.json web/package-lock.json ./
 RUN --mount=type=secret,id=extra_ca,required=false \
@@ -23,7 +29,7 @@ COPY web/ ./
 RUN npm run build
 
 # --- 2. the BFF's dependencies ---------------------------------------------------------
-FROM python:3.11-slim-bookworm AS deps
+FROM python:3.13-slim-trixie@sha256:7c61056e61ac89e852de05f3dc6fa51a6dd2181797bceed46aa725dd7cb2cd3b AS deps
 ENV PIP_DISABLE_PIP_VERSION_CHECK=1 PIP_NO_CACHE_DIR=1
 COPY bff/requirements.txt /tmp/requirements.txt
 RUN --mount=type=secret,id=extra_ca,required=false \
@@ -35,8 +41,8 @@ COPY bff/app /app/bff/app
 RUN python -m compileall -q /deps /app/bff
 
 # --- 3. what runs ----------------------------------------------------------------------
-# Debian 12's Python 3.11, the same minor version the dependencies were installed for.
-FROM gcr.io/distroless/python3-debian12:nonroot
+# Debian 13's Python 3.13, the same minor version the dependencies were installed for.
+FROM gcr.io/distroless/python3-debian13:nonroot@sha256:8ee214843129f43e2ebf5e0ca9f2e4e6d8292143d1b8a6787f169b5898578884
 COPY --from=deps /deps /app/deps
 COPY --from=deps /app/bff /app/bff
 COPY --from=web /web/dist /app/static

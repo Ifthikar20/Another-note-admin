@@ -34,7 +34,9 @@ VECTOR = dict(
     request_id="1f0c2d9e-8b1a-4c3e-9f5d-2a7b6c4d8e10",
     body=b'{"reason":"Replying to their ticket AN-0042","ticket_id":42}',
 )
-VECTOR_KEY = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+VECTOR_KEY = (
+    "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"  # gitleaks:allow (a published test vector)
+)
 VECTOR_SIGNATURE = "3BMWI3AhFmatma_RJTeyPUMcgBL8V7t1loE-08dQ-0c"  # openssl dgst -sha256 -hmac, see README
 
 

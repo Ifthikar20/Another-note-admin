@@ -1,0 +1,5 @@
+# Findings of the secret scan (CI job "secrets") that are not secrets, by fingerprint.
+# Each needs a reason. New lines get an inline "gitleaks:allow" comment instead.
+#
+# The HMAC test vector of the signing scheme (docs/ADMIN_API_CONTRACT.md), public on purpose.
+7bfe5c551f25c5b124610d5283b05ce69aaec591:bff/tests/test_signing.py:generic-api-key:37

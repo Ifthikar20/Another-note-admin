@@ -1,0 +1,33 @@
+# Proposed updates arrive as pull requests, so each one passes CI and a review like any
+# other change (docs/SOC2.md, vulnerability management). Security updates for known
+# vulnerabilities also need "Dependabot security updates" on in the repository settings.
+version: 2
+updates:
+  - package-ecosystem: pip
+    directory: /bff # what the image runs
+    schedule: { interval: weekly }
+    labels: [dependencies]
+  - package-ecosystem: pip
+    directory: / # test and lint tools
+    schedule: { interval: weekly }
+    labels: [dependencies]
+  - package-ecosystem: npm
+    directory: /web
+    schedule: { interval: weekly }
+    labels: [dependencies]
+    groups:
+      development:
+        dependency-type: development
+        update-types: [minor, patch]
+  - package-ecosystem: docker # the Dockerfile's base images, pinned by digest
+    directory: /
+    schedule: { interval: weekly }
+    labels: [dependencies]
+  - package-ecosystem: docker-compose # cloudflared in deploy/docker-compose.yml
+    directory: /deploy
+    schedule: { interval: weekly }
+    labels: [dependencies]
+  - package-ecosystem: github-actions
+    directory: /
+    schedule: { interval: weekly }
+    labels: [dependencies]
