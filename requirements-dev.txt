@@ -2,5 +2,5 @@
 -r bff/requirements.txt
 pytest==9.1.1
 pytest-asyncio==1.4.0
-ruff==0.14.0
+ruff==0.16.8
 pip-audit==2.9.0
