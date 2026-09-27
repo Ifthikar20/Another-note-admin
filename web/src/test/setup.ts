@@ -27,3 +27,8 @@ if (!("ResizeObserver" in window)) {
     disconnect() {}
   };
 }
+
+// Radix primitives and the tables ask for these; jsdom has none of them.
+if (!Element.prototype.scrollIntoView) Element.prototype.scrollIntoView = () => undefined;
+if (!Element.prototype.hasPointerCapture) Element.prototype.hasPointerCapture = () => false;
+if (!Element.prototype.releasePointerCapture) Element.prototype.releasePointerCapture = () => undefined;

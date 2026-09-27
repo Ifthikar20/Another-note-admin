@@ -230,3 +230,15 @@ def test_unknown_bff_routes_are_404_never_the_app_or_a_proxy(harness, spa):
         assert r.status_code == 404, path
         assert r.headers["content-type"].startswith("application/json")
     assert h.send("DELETE", "/bff/users/5").status_code == 404
+
+
+def test_searches_never_reach_the_logs(harness, caplog):
+    import logging
+
+    h = harness("owner")
+    with caplog.at_level(logging.DEBUG):
+        h.get("/bff/users?q=jane.doe%40example.com")
+    logged = "\n".join(r.getMessage() for r in caplog.records if r.levelno >= logging.INFO)
+    assert "jane.doe" not in logged
+    assert "GET /bff/users 200" in logged  # the BFF's own line: the path, never the query
+    assert logging.getLogger("httpx").getEffectiveLevel() >= logging.WARNING

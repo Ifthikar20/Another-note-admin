@@ -57,6 +57,14 @@ def _error(status: int, code: str, message: str) -> JSONResponse:
     return JSONResponse({"error": {"code": code, "message": message}}, status_code=status)
 
 
+def quiet_http_logs() -> None:
+    """httpx logs every request's full URL at INFO, query string included, and a query
+    can be what staff searched for (an exact email). The BFF logs its own calls, path
+    only; httpx and httpcore may speak up for warnings and errors."""
+    for name in ("httpx", "httpcore"):
+        logging.getLogger(name).setLevel(logging.WARNING)
+
+
 def create_app(
     settings: Optional[Settings] = None,
     *,
@@ -64,6 +72,7 @@ def create_app(
     access_http: Optional[httpx.AsyncClient] = None,
 ) -> FastAPI:
     settings = settings or load_settings()
+    quiet_http_logs()
     admin_client = AdminClient(settings, transport=admin_transport)
     verifier = (
         AccessVerifier(settings.cf_team_domain, settings.cf_aud, http=access_http)  # type: ignore[arg-type]
